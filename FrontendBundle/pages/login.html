@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messanger | Авторизация</title>
+  </head>
+  <body>
+    <div class="w-full h-[100vh] max-h-[100vh] flex justify-center items-center">
+        <div class="flex flex-col gap-12 min-w-[360px] w-1/4 p-8 shadow-md shadow-slate-400">
+            <h2 class="text-2xl font-medium text-center text-gray-700">Авторизация</h2>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col">
+                    <label for="login" class="text-xs text-gray-700 font-medium">Имя пользователя</label>
+                    <input type="text" id="login" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full py-1.5 px-3.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                </div>
+                <div class="flex flex-col">
+                    <label for="password" class="text-xs text-gray-700 font-medium">Пароль</label>
+                    <input type="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full py-1.5 px-3.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                </div>
+            </div>
+            <div class="">
+                <span class="text-xs text-gray-700">Нет аккаута? <a href="/pages/registration.html" class="text-blue-500">Перейти к регистрации</a></span>
+                <button class="cursor-pointer bg-blue-500 text-white py-1 w-full mt-1">Войти</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
