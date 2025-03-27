@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,7 @@ builder.Services.AddConnections();
 builder.Services.AddSignalR();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -38,6 +40,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         OnMessageReceived = context =>
         {
             context.Token = context.Request.Cookies["authToken"];
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            if (!context.HttpContext.User.Identity.IsAuthenticated)
+            {
+                context.HandleResponse();
+                context.Response.Redirect("/login");
+            }
             return Task.CompletedTask;
         }
     };

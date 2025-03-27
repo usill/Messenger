@@ -8,7 +8,7 @@ using TestSignalR.Services.Interfaces;
 namespace TestSignalR.API
 {
     [ApiController]
-    [Route("/auth")]
+    [Route("api/auth")]
     public class AuthApi : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -19,21 +19,21 @@ namespace TestSignalR.API
             _context = dbContext;
         }
         [HttpPost("registration")]
-        public async Task<IActionResult> Registration([FromBody] RegistrationRequest request)
+        public async Task<IActionResult> Registration([FromForm] RegistrationRequest request)
         {
-            if (request.Password != request.PasswordRepeat)
+            if (request.password != request.passwordRepeat)
             {
                 return BadRequest();
             }
 
-            string passwordHash = _authService.GetPasswordHash(request.Password);
+            string passwordHash = _authService.GetPasswordHash(request.password);
 
             TimeZoneInfo moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"); // for linux "Europe/Moscow"
             DateTime moscowNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, moscowZone);
 
             User newUser = new User
             {
-                Username = request.Username,
+                Username = request.username,
                 PasswordHash = passwordHash,
                 RegistredAt = moscowNow
             };
@@ -41,17 +41,17 @@ namespace TestSignalR.API
             await _context.Users.AddAsync(newUser);
             await _context.SaveChangesAsync();
 
-            string token = _authService.GenerateJwtToken(request.Username, newUser.Id.ToString());
+            string token = _authService.GenerateJwtToken(request.username, newUser.Id.ToString());
             CookieOptions cookieOptions = _authService.GetCookie(token);
             Response.Cookies.Append("authToken", token, cookieOptions);
 
             return Ok();
         }
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromForm] LoginRequest request)
         {
-            string passwordHash = _authService.GetPasswordHash(request.Password);
-            User? user = _context.Users.Where(user => user.Username == request.Username && user.PasswordHash == passwordHash).FirstOrDefault();
+            string passwordHash = _authService.GetPasswordHash(request.password);
+            User? user = _context.Users.Where(user => user.Username == request.username && user.PasswordHash == passwordHash).FirstOrDefault();
 
             if(user == null)
             {
