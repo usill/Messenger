@@ -14,11 +14,11 @@
             if(response.ok) {
                 location.href = "/";
             }
-        })
+        });
     
         form.addEventListener("submit", (ev) => {
             ev.preventDefault();
-        })
+        });
     }
 
     loginFormPrepare();
