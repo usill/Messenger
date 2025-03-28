@@ -12,5 +12,6 @@ namespace TestSignalR.Models
         public DateTime RegistredAt { get; set; }
         public List<User> Contacts { get; set; }
         public string Avatar { get; set; }
+        public List<string> Connections { get; set; }
     }
 }

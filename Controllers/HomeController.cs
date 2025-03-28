@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using System.Security.Claims;
-using TestSignalR.Models;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Controllers
@@ -30,17 +28,6 @@ namespace TestSignalR.Controllers
             ViewData["contacts"] = await _userService.GetContactsAsync(userId);
 
             return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

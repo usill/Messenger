@@ -29,6 +29,7 @@
     </style>
     <link rel="stylesheet" href="/css/main.css" />
     <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@4"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
     <script type="module" src="/js/pages/messenger.js"></script>
 </head>
 <body>
@@ -40,18 +41,18 @@
             </svg>
         </div>
     </div>
-    <div id="new-chat-modal" class="absolute w-full h-[100vh] bg-gray-800/20 z-10 flex justify-center items-center invisible" onclick="closeModal('new-chat-modal')">
-        <div class="bg-white min-w-[360px] w-1/4 p-8 flex flex-col gap-8 shadow-md shadow-slate-400 opacity-0" onclick="stopPropagationFor(event)">
+    <div onclick="closeModal('new-chat-modal')" id="new-chat-modal" class="absolute w-full h-[100vh] bg-gray-800/20 z-10 flex justify-center items-center invisible">
+        <form onclick="stopPropagationFor(event)" onsubmit="preventDefaultFor(event)" id="find-user-form" class="bg-white min-w-[360px] w-1/4 p-8 flex flex-col gap-8 shadow-md shadow-slate-400 opacity-0">
             <h2 class="text-xl font-medium text-gray-700">Написать сообщение</h2>
             <div class="flex flex-col">
                 <label for="username" class="text-xs text-gray-700 font-medium">Имя пользователя</label>
-                <input type="text" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full py-1.5 px-3.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <input type="text" id="username" name="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full py-1.5 px-3.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             </div>
             <div class="flex gap-2">
-                <button class="bg-blue-500 text-white w-fit px-6 cursor-pointer">Найти</button>
+                <button onclick="findUser(this)" class="bg-blue-500 text-white w-fit px-6 cursor-pointer">Найти</button>
                 <button class="text-gray-800 w-fit px-6 border border-gray-300 cursor-pointer" onclick="closeModal('new-chat-modal')">Отмена</button>
             </div>
-        </div>
+        </form>
     </div>
     <div class="w-full h-[100vh] max-h-[100vh] flex">
         <div class="w-1/5 p-4 border-r border-r-gray-300 h-full flex flex-col">
@@ -83,12 +84,12 @@
                 <button class="cursor-pointer" onclick="logout()"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out-icon lucide-log-out stroke-red-500"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg></button>
             </div>
         </div>
-        <div class="p-4 relative w-4/5 flex flex-col">
+        <div id="chat-side" style="visibility: hidden" class="p-4 relative w-4/5 flex flex-col">
             <div class="flex justify-between border-b pb-4 border-b-gray-300 min-h-[60px]">
-                <div class="flex items-center gap-3">
-                    <img src="/img/avatar/avatar_rabbit.webp" alt="" class="w-10 h-10">
+                <div id="chat-header" class="flex items-center gap-3">
+                    <img id="chat-header-avatar" src="/img/avatar/avatar_rabbit.webp" alt="" class="w-10 h-10">
                     <div class="flex flex-col">
-                        <span class="text-lg leading-6">Владимир Захаров</span>
+                        <span id="chat-header-username" class="text-lg leading-6">Владимир Захаров</span>
                         <span class="text-xs flex items-center gap-2">
                             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
                             В сети
@@ -97,15 +98,15 @@
                 </div>
                 <button class="cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-icon lucide-ellipsis stroke-blue-500"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg></button>
             </div>
-            <ul class="overflow-y-auto mt-auto text-gray-800 text-sm flex flex-col gap-1">
+            <ul id="chat-content" class="overflow-y-auto mt-auto text-gray-800 text-sm flex flex-col gap-1">
                 <li class="message">Привет, как дела?</li>
                 <li class="message message-my">Здаров, нормально, ты как?</li>
                 <li class="message">Четко</li>
                 <li class="message message-my">Супер</li>
             </ul>
             <div class="min-h-[60px] flex items-center gap-2 mt-4">
-                <textarea type="text" class="border border-gray-300 h-full w-full py-4 text-sm px-4 resize-none outline-none" placeholder="Начните вводить сообщение..."></textarea>
-                <button class="w-12 h-12 bg-blue-500 flex items-center justify-center rounded-full cursor-pointer pr-0.5 pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-icon lucide-send stroke-white"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /><path d="m21.854 2.147-10.94 10.939" /></svg></button>
+                <textarea id="chat-textarea" type="text" class="border border-gray-300 h-full w-full py-4 text-sm px-4 resize-none outline-none" placeholder="Начните вводить сообщение..."></textarea>
+                <button onclick="sendMessage()" class="w-12 h-12 bg-blue-500 flex items-center justify-center rounded-full cursor-pointer pr-0.5 pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-icon lucide-send stroke-white"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /><path d="m21.854 2.147-10.94 10.939" /></svg></button>
             </div>
         </div>
     </div>

@@ -2,6 +2,6 @@
 {
     public interface IChatHub
     {
-        Task ReceiveMessage(string user, string message);
+        Task ReceiveMessage(string message);
     }
 }

@@ -23,7 +23,3 @@ export const closeModal = (id) => {
     modal.firstElementChild.style.transform = "translateY(80px)";
     modal.firstElementChild.style.opacity = "0";
 }
-
-export const stopPropagationFor = (event) => {
-    event.stopPropagation();
-}

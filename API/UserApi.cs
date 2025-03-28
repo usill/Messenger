@@ -8,7 +8,7 @@ using TestSignalR.Models;
 namespace TestSignalR.API
 {
     [ApiController]
-    [Route("/user")]
+    [Route("api/user")]
     [Authorize]
     public class UserApi : ControllerBase
     {
