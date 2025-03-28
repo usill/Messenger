@@ -33,5 +33,9 @@ namespace TestSignalR.Services
 
             return currentUser.Avatar;
         }
+        public async Task<User?> FindByNameAsync(string username)
+        {
+            return await _dbContext.Users.Where(u => u.Username == username).FirstOrDefaultAsync();
+        }
     }
 }

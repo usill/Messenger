@@ -6,5 +6,6 @@ namespace TestSignalR.Services.Interfaces
     {
         public Task<List<User>> GetContactsAsync(int userId);
         public Task<string> GetAvatar(int userId);
+        public Task<User?> FindByNameAsync(string username);
     }
 }
