@@ -15,19 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\assets\avatar_rabbit-Dg157Zh_.webp" />
-    <Content Remove="wwwroot\assets\avatar_system-Cbn8rW_G.webp" />
-    <Content Remove="wwwroot\assets\index-DYMxYGI9.js" />
-    <Content Remove="wwwroot\assets\main-CyzBHwRn.css" />
-    <Content Remove="wwwroot\assets\main-DsMOXSGv.js" />
-    <Content Remove="wwwroot\assets\Rubik-Bold-OGWP0tra.ttf" />
-    <Content Remove="wwwroot\assets\Rubik-Light-C6ThhFoI.ttf" />
-    <Content Remove="wwwroot\assets\Rubik-Medium-CivPKezq.ttf" />
-    <Content Remove="wwwroot\assets\Rubik-Regular-BCr64LpH.ttf" />
-    <Content Remove="wwwroot\assets\Rubik-SemiBold-CV33eIK-.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.3" />
@@ -39,20 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\css\" />
+    <None Include="wwwroot\js\modules\modal.js" />
+    <None Include="wwwroot\js\modules\preloader.js" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\assets\avatar_rabbit-Dg157Zh_.webp" />
-    <None Include="wwwroot\assets\avatar_system-Cbn8rW_G.webp" />
-    <None Include="wwwroot\assets\index-DYMxYGI9.js" />
-    <None Include="wwwroot\assets\main-CyzBHwRn.css" />
-    <None Include="wwwroot\assets\main-DsMOXSGv.js" />
-    <None Include="wwwroot\assets\Rubik-Bold-OGWP0tra.ttf" />
-    <None Include="wwwroot\assets\Rubik-Light-C6ThhFoI.ttf" />
-    <None Include="wwwroot\assets\Rubik-Medium-CivPKezq.ttf" />
-    <None Include="wwwroot\assets\Rubik-Regular-BCr64LpH.ttf" />
-    <None Include="wwwroot\assets\Rubik-SemiBold-CV33eIK-.ttf" />
+    <Folder Include="wwwroot\fonts\" />
   </ItemGroup>
 
 </Project>

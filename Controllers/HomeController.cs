@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 using TestSignalR.Models;
+using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Controllers
 {
@@ -9,14 +11,24 @@ namespace TestSignalR.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IUserService messangerService)
         {
             _logger = logger;
+            _userService = messangerService;
+            _configuration = configuration;
         }
         
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            int userId = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            string avatarDir = _configuration.GetSection("Web:Avatar").Get<string>()!;
+
+            ViewData["username"] = User.FindFirstValue(ClaimTypes.Name);
+            ViewData["avatar"] = avatarDir + await _userService.GetAvatar(userId);
+            ViewData["contacts"] = await _userService.GetContactsAsync(userId);
+
             return View();
         }
 

@@ -10,5 +10,6 @@ namespace TestSignalR.Models
         public string PasswordHash { get; set; }
         public DateTime RegistredAt { get; set; }
         public List<User> Contacts { get; set; }
+        public string Avatar { get; set; }
     }
 }

@@ -31,11 +31,14 @@ namespace TestSignalR.API
             TimeZoneInfo moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"); // for linux "Europe/Moscow"
             DateTime moscowNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, moscowZone);
 
+            string avatar = _authService.GetRandomAvatar();
+
             User newUser = new User
             {
                 Username = request.username,
                 PasswordHash = passwordHash,
-                RegistredAt = moscowNow
+                RegistredAt = moscowNow,
+                Avatar = avatar
             };
 
             await _context.Users.AddAsync(newUser);
@@ -65,17 +68,11 @@ namespace TestSignalR.API
             return Ok();
         }
         [HttpGet("logout")]
+        [Authorize]
         public IActionResult Logout()
         {
             Response.Cookies.Delete("authToken");
             return Ok();
-        }
-        [Authorize]
-        [HttpGet("test")]
-        public ActionResult<string> TestAuth()
-        {
-            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Ok("Вы авторизованы: " + id);
         }
     }
 }

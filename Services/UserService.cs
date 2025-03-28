@@ -22,5 +22,16 @@ namespace TestSignalR.Services
 
             return currentUser.Contacts;
         }
+        public async Task<string> GetAvatar(int userId)
+        {
+            User? currentUser = await _dbContext.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
+            
+            if(currentUser == null)
+            {
+                return "";
+            }
+
+            return currentUser.Avatar;
+        }
     }
 }

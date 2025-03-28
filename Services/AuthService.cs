@@ -54,5 +54,13 @@ namespace TestSignalR.Services
                 Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(passwordHashBytes);
         }
+        public string GetRandomAvatar()
+        {
+            string avatarsDir = @_configuration.GetSection("Directories:Avatar").Get<string>()!;
+            string[] files = Directory.GetFiles(avatarsDir);
+            Random rand = new Random();
+            string file = files[rand.Next(files.Length)];
+            return Path.GetFileName(file);
+        }
     }
 }

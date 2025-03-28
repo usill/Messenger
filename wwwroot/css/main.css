@@ -1,0 +1,51 @@
+﻿
+
+body, * {
+    scrollbar-width: thin;
+}
+
+@font-face {
+    font-family: "Rubik";
+    font-weight: 300;
+    src: url("/fonts/Rubik-Light.ttf");
+}
+
+@font-face {
+    font-family: "Rubik";
+    font-weight: 400;
+    src: url("/fonts/Rubik-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Rubik";
+    font-weight: 500;
+    src: url("/fonts/Rubik-Medium.ttf");
+}
+
+@font-face {
+    font-family: "Rubik";
+    font-weight: 600;
+    src: url("/fonts/Rubik-SemiBold.ttf");
+}
+
+@font-face {
+    font-family: "Rubik";
+    font-weight: 700;
+    src: url("/fonts/Rubik-Bold.ttf");
+}
+
+.font-rubik, body {
+    font-family: "Rubik";
+}
+
+.message {
+    background-color: rgb(225, 225, 225);
+    padding: 0.4rem 1rem;
+    width: fit-content;
+    border-radius: 2px;
+}
+
+.message-my {
+    background-color: rgb(203, 231, 255);
+    margin-left: auto;
+}
