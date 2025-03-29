@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using TestSignalR.Models;
 
 namespace TestSignalR.Models

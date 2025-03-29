@@ -21,7 +21,7 @@ namespace TestSignalR.API
             _messageService = messageService;
         }
         [HttpGet("find/{name}")]
-        public async Task<ActionResult<FindContactRequest>> FindByName(string name)
+        public async Task<ActionResult<GetContactRequest>> FindByName(string name)
         {
             int senderId = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
             User? recipient = await _userService.FindByNameAsync(name);
@@ -39,7 +39,7 @@ namespace TestSignalR.API
                 messagesRequest.Add(Mapper.Map<Message, MessageRequest>(msg));
             }
 
-            FindContactRequest findResult = new FindContactRequest
+            GetContactRequest findResult = new GetContactRequest
             {
                 recipient = Mapper.Map<User, UserRequest>(recipient),
                 linkedMessages = messagesRequest,

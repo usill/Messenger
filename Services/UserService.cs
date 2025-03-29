@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TestSignalR.Models;
+using TestSignalR.Models.DTO;
+using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Services
@@ -7,20 +9,34 @@ namespace TestSignalR.Services
     public class UserService : IUserService
     {
         private readonly AppDbContext _dbContext;
-        public UserService(AppDbContext dbContext)
+        private readonly IServiceProvider _serviceProvicer;
+        public UserService(AppDbContext dbContext, IServiceProvider serviceProvider)
         {
             _dbContext = dbContext;
+            _serviceProvicer = serviceProvider;
         }
-        public async Task<List<User>> GetContactsAsync(int userId)
+        public async Task<List<GetContactsRequest>> GetContactsAsync(int userId)
         {
             User? currentUser = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Id == userId).FirstOrDefaultAsync();
+            List<GetContactsRequest> result = new List<GetContactsRequest>();
 
             if(currentUser == null)
             {
-                return new List<User> { };
+                return new List<GetContactsRequest> { };
             }
 
-            return currentUser.Contacts;
+            foreach(User contact in currentUser.Contacts)
+            {
+                var messageService = _serviceProvicer.GetRequiredService<IMessageService>();
+                List<Message> msg = await messageService.GetMessagesByUserAsync(currentUser.Id, contact.Id, 1);
+                result.Add(new GetContactsRequest
+                {
+                    recipient = Mapper.Map<User, UserRequest>(contact),
+                    linkedMessage = Mapper.Map<Message, MessageRequest>(msg.Last())
+                });
+            }
+
+            return result;
         }
         public async Task<string> GetAvatar(int userId)
         {
