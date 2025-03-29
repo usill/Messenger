@@ -1,16 +1,21 @@
 ﻿import { openModal, closeModal } from "../modal/events.js";
 import { closePreloader } from "../preloader/events.js";
 import { stopPropagationFor, preventDefaultFor } from "../../event.js";
-import { setChatHeader, clearChat, openChat, closeChat, drawMessage, drawListMessages } from "./ui.js";
+import { setChatHeader, clearChat, openChat, closeChat, drawMessage, drawListMessages, drawContact } from "./ui.js";
 import { logout, findUser, sendMessage } from "./api.js";
+import { textAreaInput, findUserByForm } from "./events.js";
 
-const connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
+window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
-connection.on("ReceiveMessage", (message) => {
+window.connection.on("ReceiveMessage", (message) => {
     drawMessage(message);
 });
 
-connection.start();
+window.connection.on("AddContact", (username, avatar, lastMessage) => {
+    drawContact(username, avatar, lastMessage);
+});
+
+window.connection.start();
 
 const chat = {
     user: {
@@ -44,7 +49,7 @@ const chatHandler = {
 
 }
 
-const chatProxy = new Proxy(chat, chatHandler);
+window.chatProxy = new Proxy(chat, chatHandler);
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -57,4 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.logout = logout;
     window.findUser = findUser;
     window.sendMessage = sendMessage;
+    window.textAreaInput = textAreaInput;
+    window.findUserByForm = findUserByForm;
 })

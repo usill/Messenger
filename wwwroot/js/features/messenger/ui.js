@@ -43,3 +43,21 @@ export const drawListMessages = (messages, recipientId) => {
         drawMessage(msg.Text, msg.RecipientId == recipientId);
     }
 }
+
+export const drawContact = (username, avatar, lastMessage) => {
+    const contactList = document.querySelector("#contacts-content");
+
+    const newContact = `
+        <li onclick="findUser('${username}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
+            <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
+            <div class="flex flex-col overflow-hidden">
+                <span class="text-sm font-medium leading-4">${username}</span>
+                <span class="text-sm leading-4 w-max">${lastMessage}</span>
+            </div>
+            <div class="absolute right-2 top-2 bg-blue-500 w-8 h-4 rounded-full flex items-center justify-center text-white text-xs">1</div>
+        </li>
+    `;
+
+    contactList.innerHTML = newContact + contactList.innerHTML;
+}
+

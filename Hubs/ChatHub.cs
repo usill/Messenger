@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
 using TestSignalR.Models;
+using TestSignalR.Models.DTO;
+using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Hubs
 {
@@ -11,36 +13,23 @@ namespace TestSignalR.Hubs
     public class ChatHub : Hub<IChatHub>
     {
         private readonly AppDbContext _dbContext;
-        public ChatHub(AppDbContext dbContext)
+        private readonly IMessageService _messageService;
+        public ChatHub(AppDbContext dbContext, IMessageService messageService)
         {
             _dbContext = dbContext;
+            _messageService = messageService;
         }
         public async Task SendMessage(string receiverId, string message)
         {
-            int senderId = Convert.ToInt32(Context.User?.FindFirstValue(ClaimTypes.NameIdentifier));
-            int receiverNumericId;
-            User? sender = _dbContext.Users.Where(u => u.Id == senderId).FirstOrDefault();
+            string senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if(!Int32.TryParse(receiverId, out receiverNumericId))
+            SendMessageResult result = await _messageService.SendMessage(receiverId, senderId, message);
+
+            if(result.IsNewContact)
             {
-                return;
+                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Avatar, "Empty");
+                await Clients.User(senderId).AddContact(result.Receiver.Username, result.Receiver.Avatar, "Empty");
             }
-
-            if(sender == null)
-            {
-                return;
-            }
-
-            Message msg = new Message
-            {
-                SenderId = senderId,
-                RecipientId = receiverNumericId,
-                SendedAt = DateTime.UtcNow,
-                Text = message
-            };
-
-            sender.MessagesSended.Add(msg);
-            await _dbContext.SaveChangesAsync();
 
             await Clients.User(receiverId).ReceiveMessage(message);
         }
