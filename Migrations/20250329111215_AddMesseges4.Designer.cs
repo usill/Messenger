@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestSignalR;
 
@@ -10,9 +11,11 @@ using TestSignalR;
 namespace TestSignalR.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250329111215_AddMesseges4")]
+    partial class AddMesseges4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
@@ -36,11 +39,12 @@ namespace TestSignalR.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipientId");
-
-                    b.HasIndex("SenderId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Messages");
                 });
@@ -53,6 +57,9 @@ namespace TestSignalR.Migrations
 
                     b.Property<string>("Avatar")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string>("Connections")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
@@ -78,21 +85,9 @@ namespace TestSignalR.Migrations
 
             modelBuilder.Entity("TestSignalR.Models.Message", b =>
                 {
-                    b.HasOne("TestSignalR.Models.User", "Recipient")
-                        .WithMany("MessagesReceive")
-                        .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TestSignalR.Models.User", "Sender")
-                        .WithMany("MessagesSended")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Recipient");
-
-                    b.Navigation("Sender");
+                    b.HasOne("TestSignalR.Models.User", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("TestSignalR.Models.User", b =>
@@ -106,9 +101,7 @@ namespace TestSignalR.Migrations
                 {
                     b.Navigation("Contacts");
 
-                    b.Navigation("MessagesReceive");
-
-                    b.Navigation("MessagesSended");
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

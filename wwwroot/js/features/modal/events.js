@@ -1,12 +1,12 @@
-
+﻿
 
 export const openModal = (id) => {
     const modal = document.getElementById(id);
-    if(!modal) return;
+    if (!modal) return;
 
     const modalContent = modal.firstElementChild;
 
-    if(!modalContent.classList.contains("duration-300")) {
+    if (!modalContent.classList.contains("duration-300")) {
         modalContent.classList.add("duration-300");
     }
 
@@ -17,7 +17,7 @@ export const openModal = (id) => {
 
 export const closeModal = (id) => {
     const modal = document.getElementById(id);
-    if(!modal) return;
+    if (!modal) return;
 
     modal.style.visibility = "hidden";
     modal.firstElementChild.style.transform = "translateY(80px)";

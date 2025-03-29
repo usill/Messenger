@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+using TestSignalR.Models;
 
 namespace TestSignalR.Models
 {
@@ -12,6 +12,7 @@ namespace TestSignalR.Models
         public DateTime RegistredAt { get; set; }
         public List<User> Contacts { get; set; }
         public string Avatar { get; set; }
-        public List<string> Connections { get; set; }
+        public List<Message> MessagesSended { get; set; } = new List<Message> { };
+        public List<Message> MessagesReceive { get; set; } = new List<Message> { };
     }
 }

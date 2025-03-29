@@ -8,11 +8,11 @@
     
     <link rel="stylesheet" href="/css/main.css" />
     <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@4"></script>
-    <script type="module" src="/js/pages/login.js"></script>
+    <script type="module" src="/js/features/auth/login/index.js"></script>
 </head>
 <body>
     <div class="w-full h-[100vh] max-h-[100vh] flex justify-center items-center">
-        <form id="login-form" class="flex flex-col gap-12 min-w-[360px] w-1/4 p-8 shadow-md shadow-slate-400">
+        <form onsubmit="preventDefaultFor(event)" class="flex flex-col gap-12 min-w-[360px] w-1/4 p-8 shadow-md shadow-slate-400">
             <h2 class="text-2xl font-medium text-center text-gray-700">Авторизация</h2>
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col">
@@ -26,7 +26,7 @@
             </div>
             <div class="">
                 <span class="text-xs text-gray-700">Нет аккаута? <a href="/registration" class="text-blue-500">Перейти к регистрации</a></span>
-                <button id="submit" class="cursor-pointer bg-blue-500 text-white py-1 w-full mt-1">Войти</button>
+                <button onclick="sendLogin(this)" class="cursor-pointer bg-blue-500 text-white py-1 w-full mt-1">Войти</button>
             </div>
         </form>
     </div>

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 using TestSignalR.Models;
 
 namespace TestSignalR.Hubs
@@ -14,32 +15,34 @@ namespace TestSignalR.Hubs
         {
             _dbContext = dbContext;
         }
-        public async Task SendMessage(string connections, string message)
+        public async Task SendMessage(string receiverId, string message)
         {
-            Console.WriteLine(connections);
-            await Clients.All.ReceiveMessage(message);
-        }
-        public override async Task OnConnectedAsync()
-        {
-            string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            int senderId = Convert.ToInt32(Context.User?.FindFirstValue(ClaimTypes.NameIdentifier));
+            int receiverNumericId;
+            User? sender = _dbContext.Users.Where(u => u.Id == senderId).FirstOrDefault();
 
-            if (id == null)
+            if(!Int32.TryParse(receiverId, out receiverNumericId))
             {
                 return;
             }
 
-            int userId = Convert.ToInt32(id);
-
-            User? user = await _dbContext.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
-
-            if(user == null)
+            if(sender == null)
             {
                 return;
             }
 
-            user.Connections.Add(Context.ConnectionId);
+            Message msg = new Message
+            {
+                SenderId = senderId,
+                RecipientId = receiverNumericId,
+                SendedAt = DateTime.UtcNow,
+                Text = message
+            };
+
+            sender.MessagesSended.Add(msg);
             await _dbContext.SaveChangesAsync();
-            await base.OnConnectedAsync();
+
+            await Clients.User(receiverId).ReceiveMessage(message);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace TestSignalR.API
         public IActionResult Login([FromForm] LoginRequest request)
         {
             string passwordHash = _authService.GetPasswordHash(request.password);
-            User? user = _context.Users.Where(user => user.Username == request.username && user.PasswordHash == passwordHash).FirstOrDefault();
+            User? user = _context.Users.Where(u => u.Username == request.username && u.PasswordHash == passwordHash).FirstOrDefault();
 
             if(user == null)
             {

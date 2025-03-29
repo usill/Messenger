@@ -4,6 +4,7 @@ using TestSignalR.Services.Interfaces;
 using TestSignalR.Models.Helper;
 using TestSignalR.Models.DTO;
 using TestSignalR.Models;
+using System.Security.Claims;
 
 namespace TestSignalR.API
 {
@@ -13,22 +14,38 @@ namespace TestSignalR.API
     public class UserApi : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserApi(IUserService userService)
+        private readonly IMessageService _messageService;
+        public UserApi(IUserService userService, IMessageService messageService)
         {
             _userService = userService;
+            _messageService = messageService;
         }
         [HttpGet("find/{name}")]
-        public async Task<ActionResult<UserRequest>> FindByName(string name)
+        public async Task<ActionResult<FindContactRequest>> FindByName(string name)
         {
-            var user = await _userService.FindByNameAsync(name);
+            int senderId = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            User? recipient = await _userService.FindByNameAsync(name);
 
-            if(user == null)
+            if(recipient == null)
             {
                 return NotFound();
             }
 
-            var userResult = Mapper.Map<User, UserRequest>(user);
-            return Ok(JsonHelper.Serialize(userResult));
+            List<Message> linkedMessages = await _messageService.GetMessagesByUserAsync(recipient.Id, senderId);
+            List<MessageRequest> messagesRequest = new List<MessageRequest>();
+
+            foreach(var msg in linkedMessages)
+            {
+                messagesRequest.Add(Mapper.Map<Message, MessageRequest>(msg));
+            }
+
+            FindContactRequest findResult = new FindContactRequest
+            {
+                recipient = Mapper.Map<User, UserRequest>(recipient),
+                linkedMessages = messagesRequest,
+            };
+
+            return Ok(JsonHelper.Serialize(findResult));
         }
     }
 }

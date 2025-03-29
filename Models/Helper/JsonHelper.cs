@@ -5,7 +5,7 @@ namespace TestSignalR.Models.Helper
 {
     public static class JsonHelper
     {
-        public static string Serialize<T>(T obj, int depth = 2)
+        public static string Serialize<T>(T obj, int depth = 8)
         {
             var jsonOptions = new JsonSerializerOptions
             {

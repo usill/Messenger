@@ -27,11 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\js\modules\modal.js" />
-    <None Include="wwwroot\js\modules\preloader.js" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="wwwroot\fonts\" />
   </ItemGroup>
 
