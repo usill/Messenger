@@ -10,7 +10,7 @@ namespace TestSignalR.Models
         public int Id { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
-        public DateTime RegistredAt { get; set; }
+        public long RegistredAt { get; set; }
         public List<User> Contacts { get; set; } = new List<User> { };
         public string Avatar { get; set; }
         public List<Message> MessagesSended { get; set; } = new List<Message> { };

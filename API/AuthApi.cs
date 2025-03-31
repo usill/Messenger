@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TestSignalR.Models;
 using TestSignalR.Models.DTO;
+using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.API
@@ -28,16 +29,13 @@ namespace TestSignalR.API
 
             string passwordHash = _authService.GetPasswordHash(request.password);
 
-            TimeZoneInfo moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"); // for linux "Europe/Moscow"
-            DateTime moscowNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, moscowZone);
-
             string avatar = _authService.GetRandomAvatar();
 
             User newUser = new User
             {
                 Username = request.username,
                 PasswordHash = passwordHash,
-                RegistredAt = moscowNow,
+                RegistredAt = DateTimeHelper.GetMoscowTimestampNow(),
                 Avatar = avatar
             };
 

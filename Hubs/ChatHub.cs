@@ -23,15 +23,23 @@ namespace TestSignalR.Hubs
         {
             string senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            SendMessageResult result = await _messageService.SendMessage(receiverId, senderId, message);
+            SendMessageResult? result = await _messageService.SendMessage(receiverId, senderId, message);
+
+            if(result == null)
+            {
+                return;
+            }
 
             if(result.IsNewContact)
             {
-                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Avatar, "Empty");
-                await Clients.User(senderId).AddContact(result.Receiver.Username, result.Receiver.Avatar, "Empty");
+                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Avatar, message);
+                await Clients.User(senderId).AddContact(result.Receiver.Username, result.Receiver.Avatar, message);
             }
 
-            await Clients.User(receiverId).ReceiveMessage(message);
+            await Clients.User(receiverId).ReceiveMessage(result.Sender.Username, message);
+
+            await Clients.User(receiverId).UpdateContact(result.Sender.Username, message);
+            await Clients.User(senderId).UpdateContact(result.Receiver.Username, message);
         }
     }
 }

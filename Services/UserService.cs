@@ -28,7 +28,7 @@ namespace TestSignalR.Services
             foreach(User contact in currentUser.Contacts)
             {
                 var messageService = _serviceProvicer.GetRequiredService<IMessageService>();
-                List<Message> msg = await messageService.GetMessagesByUserAsync(currentUser.Id, contact.Id, 1);
+                List<Message> msg = await messageService.GetMessagesByUserAsync(currentUser.Id, contact.Id, 1, "DESC");
                 result.Add(new GetContactsRequest
                 {
                     recipient = Mapper.Map<User, UserRequest>(contact),

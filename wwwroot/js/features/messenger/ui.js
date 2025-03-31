@@ -61,7 +61,7 @@ export const drawContact = (username, avatar, lastMessage) => {
     contactList.innerHTML = newContact + contactList.innerHTML;
 }
 
-export const clearContacts = (username, avatar, lastMessage) => {
+export const clearContacts = () => {
     const contactList = document.querySelector("#contacts-content");
     contactList.innerHTML = "";
 }

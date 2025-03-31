@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TestSignalR.Models.DTO;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Controllers
@@ -25,7 +26,11 @@ namespace TestSignalR.Controllers
 
             ViewData["username"] = User.FindFirstValue(ClaimTypes.Name);
             ViewData["avatar"] = avatarDir + await _userService.GetAvatar(userId);
-            ViewData["contacts"] = await _userService.GetContactsAsync(userId);
+
+            List<GetContactsRequest> contacts = await _userService.GetContactsAsync(userId);
+            contacts.OrderByDescending(c => c.linkedMessage.SendedAt);
+            
+            ViewData["contacts"] = contacts;
 
             return View();
         }

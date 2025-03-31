@@ -7,17 +7,43 @@ import { textAreaInput, findUserByForm } from "./events.js";
 
 window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
-window.connection.on("ReceiveMessage", (message) => {
-    if(window.chatProxy.isOpen) {
+window.connection.on("ReceiveMessage", (username, message) => {
+    if (window.chatProxy.isOpen && window.chatProxy.user.Username == username) {
         drawMessage(message);
     }
-
-
 });
 
 window.connection.on("AddContact", (username, avatar, lastMessage) => {
+    window.chatProxy.contacts.push({
+        recipient: {
+            Username: username,
+            Avatar: avatar,
+        },
+        linkedMessage: {
+            Text: lastMessage,
+            SendedAt: Date.now(),
+        }
+    });
     drawContact(username, avatar, lastMessage);
 });
+
+window.connection.on("UpdateContact", (username, lastMessage) => {
+    clearContacts();
+
+    for (const contact of window.chatProxy.contacts) {
+        if (contact.recipient.Username === username) {
+            contact.linkedMessage.Text = lastMessage;
+            contact.linkedMessage.SendedAt = Date.now();
+        }
+    }
+
+    window.chatProxy.contacts.sort((a, b) => b.linkedMessage.SendedAt - a.linkedMessage.SendedAt);
+
+    for (const contact of window.chatProxy.contacts)
+    {
+        drawContact(contact.recipient.Username, contact.recipient.Avatar, contact.linkedMessage.Text);
+    }
+})
 
 window.connection.start();
 
@@ -27,9 +53,7 @@ const chat = {
         Username: "",
         Avatar: "",
     },
-    contacts: {
-
-    },
+    contacts: [],
     messages: [],
     isOpen: false,
 }
