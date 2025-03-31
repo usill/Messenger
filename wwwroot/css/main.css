@@ -4,6 +4,10 @@ body, * {
     scrollbar-width: thin;
 }
 
+body {
+    overflow: hidden;
+}
+
 @font-face {
     font-family: "Rubik";
     font-weight: 300;

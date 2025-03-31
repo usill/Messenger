@@ -52,7 +52,7 @@ export const drawContact = (username, avatar, lastMessage) => {
             <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
             <div class="flex flex-col overflow-hidden">
                 <span class="text-sm font-medium leading-4">${username}</span>
-                <span class="text-sm leading-4 w-max">${lastMessage}</span>
+                <span class="text-sm leading-4 w-max text-gray-500">${lastMessage}</span>
             </div>
             <div class="absolute right-2 top-2 bg-blue-500 w-8 h-4 rounded-full flex items-center justify-center text-white text-xs">1</div>
         </li>
