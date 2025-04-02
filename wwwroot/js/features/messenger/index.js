@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     closePreloader("main-preloader");
 
+
     chatProxy.contacts = window.contacts;
 
     window.openModal = openModal;

@@ -10,8 +10,13 @@
   <ItemGroup>
     <Compile Remove="wwwroot\lib\bootstrap\**" />
     <Content Remove="wwwroot\lib\bootstrap\**" />
+	<Content Include="Migrations\**" CopyToOutputDirectory="PreserveNewest"></Content>
     <EmbeddedResource Remove="wwwroot\lib\bootstrap\**" />
     <None Remove="wwwroot\lib\bootstrap\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\main.css" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\css\tailwindcss\" />
     <Folder Include="wwwroot\fonts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\main.css" />
   </ItemGroup>
 
 </Project>
