@@ -30,16 +30,19 @@ namespace TestSignalR.Hubs
                 return;
             }
 
-            if(result.IsNewContact)
+            if(result.IsNewSender)
             {
-                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Avatar, message);
-                await Clients.User(senderId).AddContact(result.Receiver.Username, result.Receiver.Avatar, message);
+                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Login, result.Sender.Avatar, message);
+            }
+            if(result.IsNewReceiver)
+            {
+                await Clients.User(senderId).AddContact(result.Sender.Username, result.Receiver.Login, result.Receiver.Avatar, message);
             }
 
-            await Clients.User(receiverId).ReceiveMessage(result.Sender.Username, message);
+            await Clients.User(receiverId).ReceiveMessage(result.Sender.Username, result.Sender.Login, message);
 
-            await Clients.User(receiverId).UpdateContact(result.Sender.Username, message);
-            await Clients.User(senderId).UpdateContact(result.Receiver.Username, message);
+            await Clients.User(receiverId).UpdateContact(result.Sender.Login, message);
+            await Clients.User(senderId).UpdateContact(result.Receiver.Login, message);
         }
     }
 }

@@ -24,13 +24,16 @@ namespace TestSignalR.Controllers
             int userId = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
             string avatarDir = _configuration.GetSection("Web:Avatar").Get<string>()!;
 
-            ViewData["username"] = User.FindFirstValue(ClaimTypes.Name);
-            ViewData["avatar"] = avatarDir + await _userService.GetAvatar(userId);
+            UserViewData? user = await _userService.GetViewDataAsync(userId);
 
-            List<GetContactsRequest> contacts = await _userService.GetContactsAsync(userId);
-            contacts.OrderByDescending(c => c.linkedMessage.SendedAt);
-            
-            ViewData["contacts"] = contacts;
+            if(user == null)
+            {
+                return Redirect("/login");
+            }
+
+            ViewData["username"] = user.Username;
+            ViewData["avatar"] = avatarDir + user.Avatar;
+            ViewData["contacts"] = user.PreparedContacts;
 
             return View();
         }

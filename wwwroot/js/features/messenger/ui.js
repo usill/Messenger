@@ -22,6 +22,10 @@ export const closeChat = () => {
 export const openChat = () => {
     const chatSide = document.querySelector("#chat-side");
     chatSide.style.visibility = "visible";
+
+    if (window.chatProxy.user.Login == "system") {
+        chatSide.querySelector("textarea").disabled = true;
+    }
 }
 
 export const drawMessage = (message, isOwn = false) => {
@@ -44,11 +48,11 @@ export const drawListMessages = (messages, recipientId) => {
     }
 }
 
-export const drawContact = (username, avatar, lastMessage) => {
+export const drawContact = (username, login, avatar, lastMessage) => {
     const contactList = document.querySelector("#contacts-content");
 
     const newContact = `
-        <li onclick="findUser('${username}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
+        <li onclick="findUser('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
             <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
             <div class="flex flex-col overflow-hidden">
                 <span class="text-sm font-medium leading-4">${username}</span>

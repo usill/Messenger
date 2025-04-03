@@ -11,6 +11,15 @@ const registration = async (button) => {
 
     if (response.ok) {
         location.href = "/";
+    } else {
+        const errors = (await response.json()).errors;
+        for (const key in errors) {
+            const input = form.querySelector(`[name='${key}']`);
+            input.classList.remove("border-gray-300");
+            input.classList.add("border-red-400");
+            const errorLabel = input.nextElementSibling;
+            errorLabel.textContent = errors[key];
+        }
     }
 }
 

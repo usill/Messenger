@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TestSignalR.Models;
 using TestSignalR.Models.DTO;
@@ -22,9 +23,22 @@ namespace TestSignalR.API
         [HttpPost("registration")]
         public async Task<IActionResult> Registration([FromForm] RegistrationRequest request)
         {
+            if(!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
             if (request.password != request.passwordRepeat)
             {
-                return BadRequest();
+                ModelState.AddModelError("password", "Пароли не совпадают.");
+                return ValidationProblem();
+            }
+
+            var existUser = await _context.Users.Select(u => new { u.Login }).Where(u => u.Login == request.login).FirstOrDefaultAsync();
+
+            if(existUser != null)
+            {
+                ModelState.AddModelError("login", "Логин занят.");
+                return ValidationProblem();
             }
 
             string passwordHash = _authService.GetPasswordHash(request.password);
@@ -33,6 +47,7 @@ namespace TestSignalR.API
 
             User newUser = new User
             {
+                Login = request.login,
                 Username = request.username,
                 PasswordHash = passwordHash,
                 RegistredAt = DateTimeHelper.GetMoscowTimestampNow(),
@@ -40,9 +55,23 @@ namespace TestSignalR.API
             };
 
             await _context.Users.AddAsync(newUser);
+
+            User? systemUser = await _context.Users.Where((u) => u.Login == "system").FirstOrDefaultAsync();
+            newUser.Contacts.Add(systemUser);
+
             await _context.SaveChangesAsync();
 
-            string token = _authService.GenerateJwtToken(request.username, newUser.Id.ToString());
+            await _context.Messages.AddAsync(new Message
+            {
+                RecipientId = newUser.Id,
+                SenderId = systemUser.Id,
+                Text = "Поздравляем с регистрацией!",
+                SendedAt = DateTimeHelper.GetMoscowTimestampNow()
+            });
+
+            await _context.SaveChangesAsync();
+
+            string token = _authService.GenerateJwtToken(request.login, newUser.Id.ToString());
             CookieOptions cookieOptions = _authService.GetCookie(token);
             Response.Cookies.Append("authToken", token, cookieOptions);
 
@@ -52,14 +81,14 @@ namespace TestSignalR.API
         public IActionResult Login([FromForm] LoginRequest request)
         {
             string passwordHash = _authService.GetPasswordHash(request.password);
-            User? user = _context.Users.Where(u => u.Username == request.username && u.PasswordHash == passwordHash).FirstOrDefault();
+            User? user = _context.Users.Where(u => u.Login == request.login && u.PasswordHash == passwordHash).FirstOrDefault();
 
             if(user == null)
             {
                 return Unauthorized();
             }
 
-            string token = _authService.GenerateJwtToken(user.Username, user.Id.ToString());
+            string token = _authService.GenerateJwtToken(user.Login, user.Id.ToString());
             CookieOptions cookieOptions = _authService.GetCookie(token);
             Response.Cookies.Append("authToken", token, cookieOptions);
 

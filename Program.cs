@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TestSignalR;
 using TestSignalR.Hubs;
+using TestSignalR.Models;
+using TestSignalR.Models.Helper;
 using TestSignalR.Models.Settings;
 using TestSignalR.Services;
 using TestSignalR.Services.Interfaces;
@@ -87,6 +89,21 @@ using(var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var dbContext = services.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+
+    User? systemUser = dbContext.Users.Where((u) => u.Login == "system").FirstOrDefault();
+
+    if(systemUser == null)
+    {
+        dbContext.Users.Add(new User
+        {
+            Username = "Система",
+            Login = "system",
+            PasswordHash = "system",
+            RegistredAt = DateTimeHelper.GetMoscowTimestampNow(),
+            Avatar = "system/avatar_system.webp"
+        });
+        await dbContext.SaveChangesAsync();
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -95,8 +112,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-} 
-else
+} else
 {
     app.UseSwagger();
     app.UseSwaggerUI();

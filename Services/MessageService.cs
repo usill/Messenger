@@ -31,7 +31,8 @@ namespace TestSignalR.Services
         public async Task<SendMessageResult?> SendMessage(string receiverId, string senderId, string message)
         {
             SendMessageResult result = new SendMessageResult();
-            result.IsNewContact = false;
+            result.IsNewReceiver = false;
+            result.IsNewSender = false;
             int senderNumericId = Convert.ToInt32(senderId);
             int receiverNumericId;
 
@@ -48,12 +49,18 @@ namespace TestSignalR.Services
                 return null;
             }
 
-            List<Message> lastMsg = await GetMessagesByUserAsync(receiverNumericId, senderNumericId, 1);
+            User? senderContainsRceiver = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Contacts.Contains(receiver) && u.Id == senderNumericId).FirstOrDefaultAsync();
+            User? receiverContainsSender = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Contacts.Contains(sender) && u.Id == receiverNumericId).FirstOrDefaultAsync();
 
-            if (lastMsg.Count == 0)
+            if(senderContainsRceiver == null)
             {
-                await _userService.AddContactAsync(receiver, sender);
-                result.IsNewContact = true;
+                sender.Contacts.Add(receiver);
+                result.IsNewReceiver = true;
+            }
+            if(receiverContainsSender == null)
+            {
+                receiver.Contacts.Add(sender);
+                result.IsNewSender = true;
             }
 
             Message msg = new Message

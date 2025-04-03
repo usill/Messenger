@@ -15,20 +15,34 @@ namespace TestSignalR.Services
             _dbContext = dbContext;
             _serviceProvicer = serviceProvider;
         }
-        public async Task<List<GetContactsRequest>> GetContactsAsync(int userId)
+        public async Task<User?> FindByNameAsync(string username)
         {
-            User? currentUser = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Id == userId).FirstOrDefaultAsync();
-            List<GetContactsRequest> result = new List<GetContactsRequest>();
-
-            if(currentUser == null)
+            return await _dbContext.Users.Where(u => u.Login == username).FirstOrDefaultAsync();
+        }
+        public async Task<User?> FindByIdAsync(int id)
+        {
+            return await _dbContext.Users.Where(u => u.Id == id).FirstOrDefaultAsync();
+        }
+        public async Task<UserViewData?> GetViewDataAsync(int userId)
+        {
+            UserViewData? user = await _dbContext.Users.Include((u) => u.Contacts).Select((u) => new UserViewData { Id = u.Id, Avatar = u.Avatar, Username = u.Username, Contacts = u.Contacts }).Where(u => u.Id == userId).FirstOrDefaultAsync();
+            if(user == null)
             {
-                return new List<GetContactsRequest> { };
+                return null;
             }
 
-            foreach(User contact in currentUser.Contacts)
+            user.PreparedContacts = await GetContactsAsync(user.Contacts, user.Id);
+
+            return user;
+        }
+        private async Task<List<GetContactsRequest>> GetContactsAsync(List<User> contacts, int userId)
+        {
+            var messageService = _serviceProvicer.GetRequiredService<IMessageService>();
+            List<GetContactsRequest> result = new List<GetContactsRequest>();
+
+            foreach (User contact in contacts)
             {
-                var messageService = _serviceProvicer.GetRequiredService<IMessageService>();
-                List<Message> msg = await messageService.GetMessagesByUserAsync(currentUser.Id, contact.Id, 1, "DESC");
+                List<Message> msg = await messageService.GetMessagesByUserAsync(userId, contact.Id, 1, "DESC");
                 result.Add(new GetContactsRequest
                 {
                     recipient = Mapper.Map<User, UserRequest>(contact),
@@ -37,43 +51,6 @@ namespace TestSignalR.Services
             }
 
             return result;
-        }
-        public async Task<string> GetAvatar(int userId)
-        {
-            User? currentUser = await _dbContext.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
-            
-            if(currentUser == null)
-            {
-                return "";
-            }
-
-            return currentUser.Avatar;
-        }
-        public async Task<User?> FindByNameAsync(string username)
-        {
-            return await _dbContext.Users.Where(u => u.Username == username).FirstOrDefaultAsync();
-        }
-        public async Task<User?> FindByIdAsync(int id)
-        {
-            return await _dbContext.Users.Where(u => u.Id == id).FirstOrDefaultAsync();
-        }
-        public async Task AddContactAsync(User u1, User u2)
-        {
-            User? contact1 = u1.Contacts.Find(c => c.Id == u2.Id);
-            
-            if(contact1 == null)
-            {
-                u1.Contacts.Add(u2);
-            }
-
-            User? contact2 = u2.Contacts.Find(c => c.Id == u1.Id);
-
-            if(contact2 == null)
-            {
-                u2.Contacts.Add(u1);
-            }
-            
-            await _dbContext.SaveChangesAsync();
         }
     }
 }

@@ -15,6 +15,11 @@ export const sendMessage = () => {
     const textarea = document.querySelector("#chat-textarea");
 
     const message = textarea.value;
+
+    if (!message) {
+        return;
+    }
+
     const userId = JSON.stringify(window.chatProxy.user.Id);
     window.connection.invoke("SendMessage", userId, message).catch(function (error) {
         return console.error(error.toString());

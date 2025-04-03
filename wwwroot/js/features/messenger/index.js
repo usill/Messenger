@@ -7,15 +7,18 @@ import { textAreaInput, findUserByForm } from "./events.js";
 
 window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
-window.connection.on("ReceiveMessage", (username, message) => {
-    if (window.chatProxy.isOpen && window.chatProxy.user.Username == username) {
+window.connection.on("ReceiveMessage", (username, login, message) => {
+    console.log("Получено сообщение: ", message);
+    if (window.chatProxy.isOpen && window.chatProxy.user.Login == login) {
         drawMessage(message);
     }
 });
 
-window.connection.on("AddContact", (username, avatar, lastMessage) => {
+window.connection.on("AddContact", (username, login, avatar, lastMessage) => {
+    console.log("Добавлен контакт:", login);
     window.chatProxy.contacts.push({
         recipient: {
+            Login: login,
             Username: username,
             Avatar: avatar,
         },
@@ -24,24 +27,25 @@ window.connection.on("AddContact", (username, avatar, lastMessage) => {
             SendedAt: Date.now(),
         }
     });
-    drawContact(username, avatar, lastMessage);
+    drawContact(username, login, avatar, lastMessage);
 });
 
-window.connection.on("UpdateContact", (username, lastMessage) => {
+window.connection.on("UpdateContact", (login, lastMessage) => {
+    console.log("перерисовка контактов");
     clearContacts();
 
     for (const contact of window.chatProxy.contacts) {
-        if (contact.recipient.Username === username) {
+        if (contact.recipient.Login === login) {
             contact.linkedMessage.Text = lastMessage;
             contact.linkedMessage.SendedAt = Date.now();
         }
     }
 
-    window.chatProxy.contacts.sort((a, b) => b.linkedMessage.SendedAt - a.linkedMessage.SendedAt);
+    window.chatProxy.contacts.sort((a, b) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
 
     for (const contact of window.chatProxy.contacts)
     {
-        drawContact(contact.recipient.Username, contact.recipient.Avatar, contact.linkedMessage.Text);
+        drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text);
     }
 })
 
@@ -50,6 +54,7 @@ window.connection.start();
 const chat = {
     user: {
         Id: 0,
+        Login: "",
         Username: "",
         Avatar: "",
     },
@@ -73,8 +78,11 @@ const chatHandler = {
         }
         if (prop === "contacts") {
             clearContacts();
+
+            value.sort((a, b) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
+
             for (var contact of value) {
-                drawContact(contact.recipient.Username, contact.recipient.Avatar, contact.linkedMessage.Text);
+                drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text);
             }
         }
         if (prop === "isOpen") {
