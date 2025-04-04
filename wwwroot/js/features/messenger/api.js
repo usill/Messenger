@@ -1,14 +1,18 @@
-﻿import { drawMessage } from "./ui.js";
+﻿import { drawMessage, clearNotification } from "./ui.js";
 
-export const findUser = async (username) => {
-    const response = await fetch(`/api/user/find/${username}`);
+export const findUser = async (login) => {
+    const response = await fetch(`/api/user/find/${login}`);
 
     if (response.ok) {
         const findUser = await response.json();
         window.chatProxy.user = findUser.recipient;
         window.chatProxy.messages = findUser.linkedMessages;
         window.chatProxy.isOpen = true;
+
+        clearNotification(login);
     }
+
+    return response;
 }
 
 export const sendMessage = () => {

@@ -22,10 +22,6 @@ export const closeChat = () => {
 export const openChat = () => {
     const chatSide = document.querySelector("#chat-side");
     chatSide.style.visibility = "visible";
-
-    if (window.chatProxy.user.Login == "system") {
-        chatSide.querySelector("textarea").disabled = true;
-    }
 }
 
 export const drawMessage = (message, isOwn = false) => {
@@ -48,19 +44,27 @@ export const drawListMessages = (messages, recipientId) => {
     }
 }
 
-export const drawContact = (username, login, avatar, lastMessage) => {
+export const drawContact = (username, login, avatar, lastMessage, hasNewMessage) => {
     const contactList = document.querySelector("#contacts-content");
 
     const newContact = `
-        <li onclick="findUser('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
+        <li id="${login}" onclick="findUser('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
             <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
             <div class="flex flex-col overflow-hidden">
-                <span class="text-sm font-medium leading-4">${username}</span>
-                <span class="text-sm leading-4 w-max text-gray-500">${lastMessage}</span>
+                <span class="text-sm font-medium leading-4 whitespace-nowrap">${username}</span>
+                <span class="text-sm leading-4 w-max text-gray-500 whitespace-nowrap">${lastMessage}</span>
             </div>
-            <div class="absolute right-2 top-2 bg-blue-500 w-8 h-4 rounded-full flex items-center justify-center text-white text-xs">1</div>
+            ${checkNewMessage(hasNewMessage)}
         </li>
     `;
+
+    function checkNewMessage(hasNewMessage) {
+        if (hasNewMessage) {
+            return `<div id="notify" class="absolute right-1.5 top-1.5 bg-blue-500 w-2 h-2 rounded-full flex items-center justify-center text-white text-xs"></div>`;
+        }
+
+        return "";
+    }
 
     contactList.innerHTML = newContact + contactList.innerHTML;
 }
@@ -69,3 +73,15 @@ export const clearContacts = () => {
     const contactList = document.querySelector("#contacts-content");
     contactList.innerHTML = "";
 }
+
+export const clearNotification = (login) => {
+    const contact = document.querySelector(`#${login}`);
+
+    if (!contact) return;
+
+    const notify = contact.querySelector("#notify");
+
+    if (notify) {
+        notify.remove();
+    }
+} 

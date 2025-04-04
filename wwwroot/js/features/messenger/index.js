@@ -2,8 +2,9 @@
 import { closePreloader } from "../preloader/events.js";
 import { stopPropagationFor, preventDefaultFor } from "../../event.js";
 import { setChatHeader, clearChat, openChat, closeChat, drawMessage, drawListMessages, drawContact, clearContacts } from "./ui.js";
-import { logout, findUser, sendMessage } from "./api.js";
+import { logout, sendMessage, findUser } from "./api.js";
 import { textAreaInput, findUserByForm } from "./events.js";
+import { clearError } from "../../ui/input.js";
 
 window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
@@ -11,6 +12,11 @@ window.connection.on("ReceiveMessage", (username, login, message) => {
     console.log("Получено сообщение: ", message);
     if (window.chatProxy.isOpen && window.chatProxy.user.Login == login) {
         drawMessage(message);
+    }
+
+    if (!window.chatProxy.isOpen || window.chatProxy.user.Login !== login) {
+        const contact = window.chatProxy.contacts.find((item) => item.recipient.Login == login);
+        contact.HasNewMessage = true;
     }
 });
 
@@ -27,7 +33,7 @@ window.connection.on("AddContact", (username, login, avatar, lastMessage) => {
             SendedAt: Date.now(),
         }
     });
-    drawContact(username, login, avatar, lastMessage);
+    drawContact(username, login, avatar, lastMessage, true);
 });
 
 window.connection.on("UpdateContact", (login, lastMessage) => {
@@ -45,7 +51,7 @@ window.connection.on("UpdateContact", (login, lastMessage) => {
 
     for (const contact of window.chatProxy.contacts)
     {
-        drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text);
+        drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
     }
 })
 
@@ -82,7 +88,7 @@ const chatHandler = {
             value.sort((a, b) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
 
             for (var contact of value) {
-                drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text);
+                drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
             }
         }
         if (prop === "isOpen") {
@@ -100,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     closePreloader("main-preloader");
 
-
     chatProxy.contacts = window.contacts;
 
     window.openModal = openModal;
@@ -108,8 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
     window.stopPropagationFor = stopPropagationFor;
     window.preventDefaultFor = preventDefaultFor;
     window.logout = logout;
-    window.findUser = findUser;
     window.sendMessage = sendMessage;
     window.textAreaInput = textAreaInput;
     window.findUserByForm = findUserByForm;
+    window.findUser = findUser;
+    window.clearError = clearError;
 })

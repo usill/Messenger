@@ -25,7 +25,13 @@ namespace TestSignalR.Services
         }
         public async Task<UserViewData?> GetViewDataAsync(int userId)
         {
-            UserViewData? user = await _dbContext.Users.Include((u) => u.Contacts).Select((u) => new UserViewData { Id = u.Id, Avatar = u.Avatar, Username = u.Username, Contacts = u.Contacts }).Where(u => u.Id == userId).FirstOrDefaultAsync();
+            UserViewData? user = await _dbContext.Users
+                                            .Include((u) => u.Contacts)
+                                                .ThenInclude((c) => c.User)
+                                            .Select((u) => new UserViewData { Id = u.Id, Avatar = u.Avatar, Username = u.Username, Contacts = u.Contacts })
+                                            .Where(u => u.Id == userId)
+                                            .FirstOrDefaultAsync();
+            
             if(user == null)
             {
                 return null;
@@ -35,22 +41,40 @@ namespace TestSignalR.Services
 
             return user;
         }
-        private async Task<List<GetContactsRequest>> GetContactsAsync(List<User> contacts, int userId)
+        public async Task ClearNotifyContact(int senderId, int recipientId)
+        {
+            Contact? contact = await _dbContext.Contacts
+                                        .Include(c => c.User)
+                                        .Where(c => c.OwnerId == senderId && c.User.Id == recipientId)
+                                        .FirstOrDefaultAsync();
+
+            if(contact == null)
+            {
+                return;
+            }
+
+            contact.HasNewMessage = false;
+            await _dbContext.SaveChangesAsync();
+        }
+        private async Task<List<GetContactsRequest>> GetContactsAsync(List<Contact> contacts, int userId)
         {
             var messageService = _serviceProvicer.GetRequiredService<IMessageService>();
             List<GetContactsRequest> result = new List<GetContactsRequest>();
 
-            foreach (User contact in contacts)
+            foreach (Contact contact in contacts)
             {
-                List<Message> msg = await messageService.GetMessagesByUserAsync(userId, contact.Id, 1, "DESC");
+                List<Message>? msg = await messageService.GetMessagesByUserAsync(userId, contact.User.Id, 1, "DESC");
+
                 result.Add(new GetContactsRequest
                 {
-                    recipient = Mapper.Map<User, UserRequest>(contact),
-                    linkedMessage = Mapper.Map<Message, MessageRequest>(msg.Last())
+                    recipient = Mapper.Map<User, UserRequest>(contact.User),
+                    linkedMessage = Mapper.Map<Message, MessageRequest>(msg.Last()),
+                    HasNewMessage = contact.HasNewMessage,
                 });
             }
 
             return result;
         }
+
     }
 }

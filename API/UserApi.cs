@@ -45,6 +45,8 @@ namespace TestSignalR.API
                 linkedMessages = messagesRequest,
             };
 
+            await _userService.ClearNotifyContact(senderId, recipient.Id);
+
             return Ok(JsonHelper.Serialize(findResult));
         }
     }

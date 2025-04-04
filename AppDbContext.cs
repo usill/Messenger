@@ -9,7 +9,9 @@ namespace TestSignalR
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasMany(u => u.Contacts);
+                .HasMany(u => u.Contacts)
+                .WithOne(c => c.Owner)
+                .HasForeignKey(c => c.OwnerId);
 
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Sender)
@@ -23,5 +25,6 @@ namespace TestSignalR
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
     }
 }

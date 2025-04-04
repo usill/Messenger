@@ -1,4 +1,5 @@
 ﻿import { sendMessage, findUser } from "./api.js";
+import { showError } from "../../ui/input.js";
 
 export const textAreaInput = (event) => {
     if (event.key === "Enter") {
@@ -7,10 +8,15 @@ export const textAreaInput = (event) => {
     }
 }
 
-export const findUserByForm = (button) => {
+export const findUserByForm = async (button) => {
     const form = button.closest("form");
     const formData = new FormData(form);
     const username = formData.get("username");
 
-    findUser(username);
+    const response = await findUser(username);
+
+    if (response.status == 404) {
+        const inputLogin = form.querySelector("#login");
+        showError(inputLogin, "Пользователь не найден");
+    }
 }

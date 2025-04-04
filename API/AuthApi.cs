@@ -59,7 +59,11 @@ namespace TestSignalR.API
             await _context.Users.AddAsync(newUser);
 
             User? systemUser = await _context.Users.Where((u) => u.Login == "system").FirstOrDefaultAsync();
-            newUser.Contacts.Add(systemUser);
+            newUser.Contacts.Add(new Contact
+            {
+                User = systemUser,
+                HasNewMessage = true
+            });
 
             await _context.SaveChangesAsync();
 

@@ -16,7 +16,7 @@ namespace TestSignalR.Services
             _dbContext = dbContext;
             _userService = userService;
         }
-        public async Task<List<Message>> GetMessagesByUserAsync(int recipientId, int senderId, int limit = 25, string order = "ASC")
+        public async Task<List<Message>?> GetMessagesByUserAsync(int recipientId, int senderId, int limit = 25, string order = "ASC")
         {
             string safeOrder = order.ToUpper() == "DESC" ? "DESC" : "ASC";
             string sql = $@"
@@ -49,18 +49,31 @@ namespace TestSignalR.Services
                 return null;
             }
 
-            User? senderContainsRceiver = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Contacts.Contains(receiver) && u.Id == senderNumericId).FirstOrDefaultAsync();
-            User? receiverContainsSender = await _dbContext.Users.Include(u => u.Contacts).Where(u => u.Contacts.Contains(sender) && u.Id == receiverNumericId).FirstOrDefaultAsync();
+            var senderContainsRceiver = await _dbContext.Contacts.Include(c => c.User).Where(c => c.OwnerId == senderNumericId && c.User.Id == receiverNumericId).FirstOrDefaultAsync();
+            var receiverContainsSender = await _dbContext.Contacts.Include(c => c.User).Where(c => c.OwnerId == receiverNumericId && c.User.Id == senderNumericId).FirstOrDefaultAsync();
 
-            if(senderContainsRceiver == null)
+            if (senderContainsRceiver == null)
             {
-                sender.Contacts.Add(receiver);
+                sender.Contacts.Add(new Contact
+                {
+                    User = receiver,
+                    HasNewMessage = false
+                });
                 result.IsNewReceiver = true;
             }
+
             if(receiverContainsSender == null)
             {
-                receiver.Contacts.Add(sender);
+                receiver.Contacts.Add(new Contact
+                {
+                    User = sender,
+                    HasNewMessage = true
+                });
                 result.IsNewSender = true;
+            }
+            else
+            {
+                receiverContainsSender.HasNewMessage = true;
             }
 
             Message msg = new Message
