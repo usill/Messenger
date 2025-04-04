@@ -21,6 +21,7 @@ namespace TestSignalR.API
             _context = dbContext;
         }
         [HttpPost("registration")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registration([FromForm] RegistrationRequest request)
         {
             if(!ModelState.IsValid)
@@ -79,6 +80,7 @@ namespace TestSignalR.API
             return Ok();
         }
         [HttpPost("login")]
+        [ValidateAntiForgeryToken]
         public IActionResult Login([FromForm] LoginRequest request)
         {
             if(!ModelState.IsValid)
@@ -90,6 +92,7 @@ namespace TestSignalR.API
 
             if(user == null)
             {
+                ModelState.AddModelError("login", " ");
                 ModelState.AddModelError("password", "Некорректные данные");
                 return ValidationProblem();
             }

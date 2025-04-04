@@ -68,6 +68,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("SqliteDb"));
 });
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "VALIDATION-TOKEN";
+    options.HeaderName = "X-VALIDATION-TOKEN";
+    options.FormFieldName = "validationTiken";
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -138,7 +145,7 @@ app.MapHub<ChatHub>("/chat");
 
 app.Use(async (context, next) =>
 {
-    var securityMiddleware = new Security();
+    var securityMiddleware = new Security(builder.Configuration);
     await securityMiddleware.UseCSRF(context, next);
 });
 
