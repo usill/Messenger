@@ -29,7 +29,8 @@ namespace TestSignalR.API
             }
             if (request.password != request.passwordRepeat)
             {
-                ModelState.AddModelError("password", "Пароли не совпадают.");
+                ModelState.AddModelError("password", " ");
+                ModelState.AddModelError("passwordRepeat", "Пароли не совпадают.");
                 return ValidationProblem();
             }
 
@@ -80,12 +81,17 @@ namespace TestSignalR.API
         [HttpPost("login")]
         public IActionResult Login([FromForm] LoginRequest request)
         {
+            if(!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
             string passwordHash = _authService.GetPasswordHash(request.password);
             User? user = _context.Users.Where(u => u.Login == request.login && u.PasswordHash == passwordHash).FirstOrDefault();
 
             if(user == null)
             {
-                return Unauthorized();
+                ModelState.AddModelError("password", "Некорректные данные");
+                return ValidationProblem();
             }
 
             string token = _authService.GenerateJwtToken(user.Login, user.Id.ToString());

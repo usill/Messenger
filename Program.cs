@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TestSignalR;
 using TestSignalR.Hubs;
+using TestSignalR.Middleware;
 using TestSignalR.Models;
 using TestSignalR.Models.Helper;
 using TestSignalR.Models.Settings;
@@ -134,5 +135,11 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<ChatHub>("/chat");
+
+app.Use(async (context, next) =>
+{
+    var securityMiddleware = new Security();
+    await securityMiddleware.UseCSRF(context, next);
+});
 
 app.Run();
