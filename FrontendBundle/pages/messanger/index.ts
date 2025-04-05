@@ -1,38 +1,52 @@
-﻿import { openModal, closeModal } from "../modal/events";
-import { closePreloader } from "../preloader/events";
-import { stopPropagationFor, preventDefaultFor } from "../../event";
+﻿import * as signalR from "@microsoft/signalr";
+
+import { openModal, closeModal } from "../../modules/modal/events";
+import { closePreloader } from "../../modules/preloader/events";
+import { stopPropagationFor, preventDefaultFor } from "../../modules/event";
 import { setChatHeader, clearChat, openChat, closeChat, drawMessage, drawListMessages, drawContact, clearContacts } from "./ui";
 import { logout, sendMessage, findUser } from "./api";
 import { textAreaInput, findUserByForm } from "./events";
-import { clearError } from "../../ui/input";
+import { clearError } from "../../modules/UI/input";
+import { Contact } from "./types/Contact";
+import { Messanger } from "./types/Messanger";
+import { User } from "./types/User";
+import { Message } from "./types/Message";
 
 window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
 window.connection.on("ReceiveMessage", (username, login, message) => {
-    console.log("Получено сообщение: ", message);
-    if (window.chatProxy.isOpen && window.chatProxy.user.Login == login) {
+    console.log("Получено сообщение: ", username);
+
+    if (window.chatProxy.isChatOpen && window.chatProxy.user.Login == login) {
         drawMessage(message);
     }
 
-    if (!window.chatProxy.isOpen || window.chatProxy.user.Login !== login) {
-        const contact = window.chatProxy.contacts.find((item) => item.recipient.Login == login);
+    if (!window.chatProxy.isChatOpen || window.chatProxy.user.Login !== login) {
+        const contact: Contact | undefined = window.chatProxy.contacts.find((item: Contact) => item.recipient.Login == login);
+
+        if(!contact) return;
+
         contact.HasNewMessage = true;
     }
 });
 
-window.connection.on("AddContact", (username, login, avatar, lastMessage) => {
+window.connection.on("AddContact", (username, login, avatar, lastMessage: string) => {
     console.log("Добавлен контакт:", login);
-    window.chatProxy.contacts.push({
+
+    const newContact: Contact = {
+        HasNewMessage: true,
         recipient: {
             Login: login,
             Username: username,
             Avatar: avatar,
-        },
+        } as User,
         linkedMessage: {
             Text: lastMessage,
             SendedAt: Date.now(),
-        }
-    });
+        } as Message
+    };
+
+    window.chatProxy.contacts.push(newContact);
     drawContact(username, login, avatar, lastMessage, true);
 });
 
@@ -57,41 +71,35 @@ window.connection.on("UpdateContact", (login, lastMessage) => {
 
 window.connection.start();
 
-const chat = {
-    user: {
-        Id: 0,
-        Login: "",
-        Username: "",
-        Avatar: "",
-    },
-    contacts: [],
-    messages: [],
-    isOpen: false,
-}
+const chat: Messanger = {} as Messanger;
 
 const chatHandler = {
-    set(obj, prop, value) {
+    set(obj: Messanger, prop: string, value: User | Contact[] | Message[] | boolean) {
         obj[prop] = value;
         console.log(value);
 
         if (prop === "user") {
+            value = value as User;
             setChatHeader(value);
             closeModal("new-chat-modal");
         }
         if (prop === "messages") {
+            value = value as Message[];
             clearChat();
-            drawListMessages(value, obj.user.Id);
+            drawListMessages(value, obj.user.Id ?? 0);
         }
         if (prop === "contacts") {
             clearContacts();
 
-            value.sort((a, b) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
+            value = value as Contact[]
+            value.sort((a: Contact, b: Contact) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
 
-            for (var contact of value) {
+            for (var contact of value as Contact[]) {
                 drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
             }
         }
-        if (prop === "isOpen") {
+        if (prop === "isChatOpen") {
+            value = value as boolean;
             value === true ? openChat() : closeChat();
         }
 
@@ -100,13 +108,13 @@ const chatHandler = {
 
 }
 
-window.chatProxy = new Proxy(chat, chatHandler);
+window.chatProxy = new Proxy<Messanger>(chat, chatHandler);
 
 document.addEventListener("DOMContentLoaded", () => {
     
     closePreloader("main-preloader");
 
-    chatProxy.contacts = window.contacts;
+    window.chatProxy.contacts = window.contacts;
 
     window.openModal = openModal;
     window.closeModal = closeModal;

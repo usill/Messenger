@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "useDefineForClassFields": true,
+        "module": "ESNext",
+        "lib": ["DOM", "ES6"],
+        "skipLibCheck": true,
+
+        "moduleResolution": "bundler",
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": false,
+
+        "strict": true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "noPropertyAccessFromIndexSignature": true,
+        
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./wwwroot",
+        "rootDir": "./FrontendBundle",
+        "baseUrl": "./",
+        "paths": {
+            "@/*": ["FrontendBundle/*"],
+            "@microsoft/signalr": ["node_modules/@microsoft/signalr/dist/esm/index.d.ts"]
+        },
+    },
+    "include": ["FrontendBundle/**/*"],
+    "exclude": ["node_modules"]
+}

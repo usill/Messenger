@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 PowerShell/
 production/
+
+dist/
+messanger.db
+messanger.db-shm
+messanger.db-wal

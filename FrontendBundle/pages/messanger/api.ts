@@ -1,13 +1,13 @@
 ﻿import { drawMessage, clearNotification } from "./ui";
 
-export const findUser = async (login) => {
+export const findUser = async (login: string) => {
     const response = await fetch(`/api/user/find/${login}`);
 
     if (response.ok) {
         const findUser = await response.json();
         window.chatProxy.user = findUser.recipient;
         window.chatProxy.messages = findUser.linkedMessages;
-        window.chatProxy.isOpen = true;
+        window.chatProxy.isChatOpen = true;
 
         clearNotification(login);
     }
@@ -16,13 +16,13 @@ export const findUser = async (login) => {
 }
 
 export const sendMessage = () => {
-    const textarea = document.querySelector("#chat-textarea");
+    const textarea: HTMLTextAreaElement | null = document.querySelector("#chat-textarea");
+
+    if(!textarea) return;
 
     const message = textarea.value;
 
-    if (!message) {
-        return;
-    }
+    if (!message) return;
 
     const userId = JSON.stringify(window.chatProxy.user.Id);
     window.connection.invoke("SendMessage", userId, message).catch(function (error) {
