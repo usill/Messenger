@@ -1,8 +1,18 @@
+import * as signalR from "@microsoft/signalr";
 import { Contact } from "./types/Contact";
 import { Message } from "./types/Message";
 import { User } from "./types/User";
 import { clearContacts, drawContact, drawMessage } from "./ui";
 
+export const initConnection = () => {
+    window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
+
+    window.connection.on("ReceiveMessage", receiveMessage);
+    window.connection.on("AddContact", addContact);
+    window.connection.on("UpdateContact", updateContact);
+
+    window.connection.start();
+}
 
 export const receiveMessage = (username: string, login: string, message: string) => {
     console.log("Получено сообщение: ", username);
