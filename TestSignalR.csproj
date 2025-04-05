@@ -8,11 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="wwwroot\lib\bootstrap\**" />
-    <Content Remove="wwwroot\lib\bootstrap\**" />
 	<Content Include="Migrations\**" CopyToOutputDirectory="PreserveNewest"></Content>
-    <EmbeddedResource Remove="wwwroot\lib\bootstrap\**" />
-    <None Remove="wwwroot\lib\bootstrap\**" />
   </ItemGroup>
 
   <ItemGroup>
