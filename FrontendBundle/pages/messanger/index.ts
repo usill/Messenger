@@ -1,73 +1,22 @@
 ﻿import * as signalR from "@microsoft/signalr";
-
 import { openModal, closeModal } from "../../modules/modal/events";
 import { closePreloader } from "../../modules/preloader/events";
 import { stopPropagationFor, preventDefaultFor } from "../../modules/event";
-import { setChatHeader, clearChat, openChat, closeChat, drawMessage, drawListMessages, drawContact, clearContacts } from "./ui";
+import { setChatHeader, clearChat, openChat, closeChat, drawListMessages, drawContact, clearContacts } from "./ui";
 import { logout, sendMessage, findUser } from "./api";
 import { textAreaInput, findUserByForm } from "./events";
 import { clearError } from "../../modules/UI/input";
 import { Contact } from "./types/Contact";
-import { Messanger } from "./types/Messanger";
+import { Messanger, MessangerKeys } from "./types/Messanger";
 import { User } from "./types/User";
 import { Message } from "./types/Message";
+import { receiveMessage, addContact, updateContact } from "./connection";
 
 window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
-window.connection.on("ReceiveMessage", (username, login, message) => {
-    console.log("Получено сообщение: ", username);
-
-    if (window.chatProxy.isChatOpen && window.chatProxy.user.Login == login) {
-        drawMessage(message);
-    }
-
-    if (!window.chatProxy.isChatOpen || window.chatProxy.user.Login !== login) {
-        const contact: Contact | undefined = window.chatProxy.contacts.find((item: Contact) => item.recipient.Login == login);
-
-        if(!contact) return;
-
-        contact.HasNewMessage = true;
-    }
-});
-
-window.connection.on("AddContact", (username, login, avatar, lastMessage: string) => {
-    console.log("Добавлен контакт:", login);
-
-    const newContact: Contact = {
-        HasNewMessage: true,
-        recipient: {
-            Login: login,
-            Username: username,
-            Avatar: avatar,
-        } as User,
-        linkedMessage: {
-            Text: lastMessage,
-            SendedAt: Date.now(),
-        } as Message
-    };
-
-    window.chatProxy.contacts.push(newContact);
-    drawContact(username, login, avatar, lastMessage, true);
-});
-
-window.connection.on("UpdateContact", (login, lastMessage) => {
-    console.log("перерисовка контактов");
-    clearContacts();
-
-    for (const contact of window.chatProxy.contacts) {
-        if (contact.recipient.Login === login) {
-            contact.linkedMessage.Text = lastMessage;
-            contact.linkedMessage.SendedAt = Date.now();
-        }
-    }
-
-    window.chatProxy.contacts.sort((a, b) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
-
-    for (const contact of window.chatProxy.contacts)
-    {
-        drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
-    }
-})
+window.connection.on("ReceiveMessage", receiveMessage);
+window.connection.on("AddContact", addContact);
+window.connection.on("UpdateContact", updateContact);
 
 window.connection.start();
 
@@ -78,17 +27,17 @@ const chatHandler = {
         obj[prop] = value;
         console.log(value);
 
-        if (prop === "user") {
+        if (prop === MessangerKeys.User) {
             value = value as User;
             setChatHeader(value);
             closeModal("new-chat-modal");
         }
-        if (prop === "messages") {
+        if (prop === MessangerKeys.Messages) {
             value = value as Message[];
             clearChat();
             drawListMessages(value, obj.user.Id ?? 0);
         }
-        if (prop === "contacts") {
+        if (prop === MessangerKeys.Contacts) {
             clearContacts();
 
             value = value as Contact[]
@@ -98,7 +47,7 @@ const chatHandler = {
                 drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
             }
         }
-        if (prop === "isChatOpen") {
+        if (prop === MessangerKeys.IsChatOpen) {
             value = value as boolean;
             value === true ? openChat() : closeChat();
         }
