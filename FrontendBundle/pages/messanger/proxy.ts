@@ -4,7 +4,7 @@ import { Messanger, MessangerKeys } from "./types/Messanger";
 import { User } from "./types/User";
 import { Message } from "./types/Message";
 import { setChatHeader, clearChat, openChat, closeChat, drawListMessages, drawContact, clearContacts } from "./ui";
-import { closeModal } from "@/modules/modal/events";
+import { closeModal } from "../../modules/modal/events";
 
 export const initProxy = () => {
     const messanger: Messanger = {} as Messanger;

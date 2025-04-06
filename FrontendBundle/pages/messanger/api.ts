@@ -20,7 +20,7 @@ export const sendMessage = () => {
 
     if(!textarea) return;
 
-    const message = textarea.value;
+    const message: string = textarea.value;
 
     if (!message) return;
 

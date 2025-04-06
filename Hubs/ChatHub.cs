@@ -39,7 +39,7 @@ namespace TestSignalR.Hubs
                 await Clients.User(senderId).AddContact(result.Sender.Username, result.Receiver.Login, result.Receiver.Avatar, message);
             }
 
-            await Clients.User(receiverId).ReceiveMessage(result.Sender.Username, result.Sender.Login, message);
+            await Clients.User(receiverId).ReceiveMessage(result.Sender.Login, message);
 
             await Clients.User(receiverId).UpdateContact(result.Sender.Login, message);
             await Clients.User(senderId).UpdateContact(result.Receiver.Login, message);

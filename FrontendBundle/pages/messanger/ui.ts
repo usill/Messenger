@@ -1,4 +1,5 @@
-﻿import { Message } from "./types/Message";
+﻿import { checkNotify, NotifyState } from "./connection";
+import { Message } from "./types/Message";
 import { User } from "./types/User";
 
 export const setChatHeader = (user: User) => {
@@ -27,11 +28,22 @@ export const closeChat = () => {
     chatSide.style.visibility = "hiddent";
 }
 
+export const scrollChatToEnd = () => {
+    const chat = document.querySelector("#chat-content");
+    chat?.scrollTo({
+        top: chat.scrollHeight
+    });
+}
+
 export const openChat = () => {
     const chatSide: HTMLElement | null = document.querySelector("#chat-side");
     if(!chatSide) return;
     chatSide.style.visibility = "visible";
+
+    scrollChatToEnd();
 }
+
+
 
 export const drawMessage = (message: string, isOwn = false) => {
     const li: HTMLElement = document.createElement("li");
@@ -47,6 +59,7 @@ export const drawMessage = (message: string, isOwn = false) => {
     }
 
     chat.appendChild(li);
+    scrollChatToEnd();
 }
 
 export const drawListMessages = (messages: Message[], recipientId: number | string) => {
@@ -96,5 +109,6 @@ export const clearNotification = (login: string) => {
 
     if (notify) {
         notify.remove();
+        checkNotify(login, NotifyState.Visible);
     }
 } 

@@ -4,6 +4,24 @@ import { Message } from "./types/Message";
 import { User } from "./types/User";
 import { clearContacts, drawContact, drawMessage } from "./ui";
 
+export enum NotifyState {
+    Visible,
+    Invisible
+}
+
+export const checkNotify = (login: string, state: NotifyState) => {
+    const contact: Contact | undefined = window.chatProxy.contacts.find((item: Contact) => item.recipient.Login == login);
+    if (!contact) return;
+
+    if ((!window.chatProxy.isChatOpen || window.chatProxy.user.Login !== login) && state === NotifyState.Invisible) {
+        contact.HasNewMessage = true;
+    }
+
+    if(state === NotifyState.Visible) {
+        contact.HasNewMessage = false;
+    }
+}
+
 export const initConnection = () => {
     window.connection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
@@ -14,20 +32,12 @@ export const initConnection = () => {
     window.connection.start();
 }
 
-export const receiveMessage = (username: string, login: string, message: string) => {
-    console.log("Получено сообщение: ", username);
-
+export const receiveMessage = (login: string, message: string) => {
     if (window.chatProxy.isChatOpen && window.chatProxy.user.Login == login) {
         drawMessage(message);
     }
-
-    if (!window.chatProxy.isChatOpen || window.chatProxy.user.Login !== login) {
-        const contact: Contact | undefined = window.chatProxy.contacts.find((item: Contact) => item.recipient.Login == login);
-
-        if(!contact) return;
-
-        contact.HasNewMessage = true;
-    }
+    
+    checkNotify(login, NotifyState.Invisible);
 };
 
 export const addContact = (username: string, login: string, avatar: string, lastMessage: string) => {
@@ -53,6 +63,7 @@ export const addContact = (username: string, login: string, avatar: string, last
 export const updateContact = (login: string, lastMessage: string) => {
     console.log("перерисовка контактов");
     clearContacts();
+    checkNotify(login, NotifyState.Invisible);
 
     for (const contact of window.chatProxy.contacts) {
         if (contact.recipient.Login === login) {
@@ -65,6 +76,7 @@ export const updateContact = (login: string, lastMessage: string) => {
 
     for (const contact of window.chatProxy.contacts)
     {
+        console.log("draw");
         drawContact(contact.recipient.Username, contact.recipient.Login, contact.recipient.Avatar, contact.linkedMessage.Text, contact.HasNewMessage);
     }
 };
