@@ -73,7 +73,7 @@ export const drawContact = (username: string, login: string, avatar: string, las
     if(!contactList) return;
 
     const newContact = `
-        <li id="${login}" onclick="findUser('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
+        <li id="${login}" onclick="findContact('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
             <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
             <div class="flex flex-col overflow-hidden">
                 <span class="text-sm font-medium leading-4 whitespace-nowrap">${username}</span>

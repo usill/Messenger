@@ -1,18 +1,9 @@
-﻿import { drawMessage, clearNotification } from "./ui";
+﻿import { drawMessage } from "./ui";
 
-export const findUser = async (login: string) => {
-    const response = await fetch(`/api/user/find/${login}`);
-
-    if (response.ok) {
-        const findUser = await response.json();
-        window.chatProxy.user = findUser.recipient;
-        window.chatProxy.messages = findUser.linkedMessages;
-        window.chatProxy.isChatOpen = true;
-
-        clearNotification(login);
-    }
-
-    return response;
+export const findContact = async (login: string) => {
+    window.connection.invoke("FindContact", login).catch((error) => {
+        return console.error(error.toString());
+    });
 }
 
 export const sendMessage = () => {
@@ -25,7 +16,7 @@ export const sendMessage = () => {
     if (!message) return;
 
     const userId = JSON.stringify(window.chatProxy.user.Id);
-    window.connection.invoke("SendMessage", userId, message).catch(function (error) {
+    window.connection.invoke("SendMessage", userId, message).catch((error) => {
         return console.error(error.toString());
     });
 

@@ -2,7 +2,9 @@ import * as signalR from "@microsoft/signalr";
 import { Contact } from "./types/Contact";
 import { Message } from "./types/Message";
 import { User } from "./types/User";
-import { clearContacts, drawContact, drawMessage } from "./ui";
+import { clearContacts, clearNotification, drawContact, drawMessage } from "./ui";
+import { FindedContact } from "./types/FindedContact";
+import { showError } from "../../modules/UI/input";
 
 export enum NotifyState {
     Visible,
@@ -28,6 +30,7 @@ export const initConnection = () => {
     window.connection.on("ReceiveMessage", receiveMessage);
     window.connection.on("AddContact", addContact);
     window.connection.on("UpdateContact", updateContact);
+    window.connection.on("ReceiveContact", receiveContact);
 
     window.connection.start();
 }
@@ -39,6 +42,29 @@ export const receiveMessage = (login: string, message: string) => {
     
     checkNotify(login, NotifyState.Invisible);
 };
+
+export const receiveContact = (contact: string) => {
+    const data: FindedContact = JSON.parse(contact);
+    console.log("Контакт найден: ", data)
+
+    if(!data.isFind) {
+        const form: HTMLFormElement | null = document.querySelector("#new-chat-modal");
+        if(!form) return;
+        const inputLogin: HTMLInputElement | null = form.querySelector("#login");
+        if(!inputLogin) return;
+        showError(inputLogin, "Пользователь не найден");
+        return;
+    }
+
+    const user = data.user as User;
+    const messages = data.linkedMessages as Message[];
+
+    window.chatProxy.user = user;
+    window.chatProxy.messages = messages;
+    window.chatProxy.isChatOpen = true;
+
+    clearNotification(user.Login);
+}
 
 export const addContact = (username: string, login: string, avatar: string, lastMessage: string) => {
     console.log("Добавлен контакт:", login);

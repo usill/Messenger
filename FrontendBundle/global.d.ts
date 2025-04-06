@@ -19,7 +19,7 @@ declare global {
         logout: () => void,
         sendMessage: () => void,
         textAreaInput: (event: KeyboardEvent) => void,
-        findUserByForm: (button: HTMLButtonElement) => void,
-        findUser: (login: string) => void
+        findContactByForm: (button: HTMLButtonElement) => void,
+        findContact: (login: string) => void
     }
 }

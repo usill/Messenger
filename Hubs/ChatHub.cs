@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text.Json;
+using System.Xml.Linq;
 using TestSignalR.Models;
 using TestSignalR.Models.DTO;
+using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Hubs
@@ -12,17 +13,16 @@ namespace TestSignalR.Hubs
     [Authorize]
     public class ChatHub : Hub<IChatHub>
     {
-        private readonly AppDbContext _dbContext;
         private readonly IMessageService _messageService;
-        public ChatHub(AppDbContext dbContext, IMessageService messageService)
+        private readonly IUserService _userService;
+        public ChatHub(AppDbContext dbContext, IMessageService messageService, IUserService userService)
         {
-            _dbContext = dbContext;
             _messageService = messageService;
+            _userService = userService;
         }
         public async Task SendMessage(string receiverId, string message)
         {
-            string senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-
+            string? senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
             SendMessageResult? result = await _messageService.SendMessage(receiverId, senderId, message);
 
             if(result == null)
@@ -43,6 +43,41 @@ namespace TestSignalR.Hubs
 
             await Clients.User(receiverId).UpdateContact(result.Sender.Login, message);
             await Clients.User(senderId).UpdateContact(result.Receiver.Login, message);
+            return;
+        }
+        public async Task FindContact(string login)
+        {
+            string? sender = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (sender == null) return;
+            int senderId = Int32.Parse(sender);
+
+            FindContactResponse result = new FindContactResponse();
+            result.isFind = false;
+
+            User? recipient = await _userService.FindByNameAsync(login);
+
+            if (recipient == null)
+            {
+                await Clients.User(sender).ReceiveContact(JsonHelper.Serialize(result));
+                return;
+            }
+
+            List<Message> linkedMessages = await _messageService.GetMessagesByUserAsync(recipient.Id, senderId);
+            List<MessageRequest> messagesRequest = new List<MessageRequest>();
+
+            foreach (var msg in linkedMessages)
+            {
+                messagesRequest.Add(Mapper.Map<Message, MessageRequest>(msg));
+            }
+
+            result.isFind = true;
+            result.user = Mapper.Map<User, UserRequest>(recipient);
+            result.linkedMessages = messagesRequest;
+
+            await _userService.ClearNotifyContact(senderId, recipient.Id);
+
+            await Clients.User(sender).ReceiveContact(JsonHelper.Serialize(result));
+            return;
         }
     }
 }
