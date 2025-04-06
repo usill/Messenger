@@ -17,12 +17,12 @@ namespace TestSignalR.Services
             _configuration = configuration;
             _tokenLifetime = configuration.GetSection("Auth:TokenLifetimeHourses").Get<int>();
         }
-        public string GenerateJwtToken(string username, string id)
+        public string GenerateJwtToken(string login, string id)
         {
             JwtSetting jwtSettings = _configuration.GetSection("Auth:Jwt").Get<JwtSetting>()!;
 
             List<Claim> claims = new List<Claim> {
-                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Name, login),
                 new Claim(ClaimTypes.NameIdentifier, id)
             };
 

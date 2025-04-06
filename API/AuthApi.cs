@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TestSignalR.Models;
-using TestSignalR.Models.DTO;
+using TestSignalR.Models.DTO.request;
 using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
@@ -91,6 +91,7 @@ namespace TestSignalR.API
             {
                 return ValidationProblem();
             }
+
             string passwordHash = _authService.GetPasswordHash(request.password);
             User? user = _context.Users.Where(u => u.Login == request.login && u.PasswordHash == passwordHash).FirstOrDefault();
 

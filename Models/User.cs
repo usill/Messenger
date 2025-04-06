@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using TestSignalR.Models;
+using TestSignalR.Services.Enums;
 
 namespace TestSignalR.Models
 {
@@ -14,6 +15,7 @@ namespace TestSignalR.Models
         public long RegistredAt { get; set; }
         public List<Contact> Contacts { get; set; } = new List<Contact> { };
         public string Avatar { get; set; }
+        public UserStatus Status { get; set; }
         public List<Message> MessagesSended { get; set; } = new List<Message> { };
         public List<Message> MessagesReceive { get; set; } = new List<Message> { };
     }

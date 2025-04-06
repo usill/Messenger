@@ -1,6 +1,6 @@
-﻿namespace TestSignalR.Models.DTO
+﻿namespace TestSignalR.Models.DTO.response
 {
-    public class SendMessageResult
+    public class SendMessageResponse
     {
         public bool IsNewReceiver { get; set; }
         public bool IsNewSender { get; set; }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TestSignalR.Models;
-using TestSignalR.Models.DTO;
+using TestSignalR.Models.DTO.response;
 using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
@@ -28,9 +28,9 @@ namespace TestSignalR.Services
 
             return await _dbContext.Messages.FromSqlRaw(sql).ToListAsync();
         }
-        public async Task<SendMessageResult?> SendMessage(string receiverId, string senderId, string message)
+        public async Task<SendMessageResponse?> SendMessage(string receiverId, string senderId, string message)
         {
-            SendMessageResult result = new SendMessageResult();
+            SendMessageResponse result = new SendMessageResponse();
             result.IsNewReceiver = false;
             result.IsNewSender = false;
             int senderNumericId = Convert.ToInt32(senderId);

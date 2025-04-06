@@ -1,6 +1,6 @@
 ﻿import { checkNotify, NotifyState } from "./connection";
 import { Message } from "./types/Message";
-import { User } from "./types/User";
+import { User, UserStatus } from "./types/User";
 
 export const setChatHeader = (user: User) => {
     const header: HTMLElement | null = document.querySelector("#chat-header");
@@ -112,3 +112,17 @@ export const clearNotification = (login: string) => {
         checkNotify(login, NotifyState.Visible);
     }
 } 
+
+export const setStatusInHeader = (status: UserStatus) => {
+    const statusLabel: HTMLElement | null = document.querySelector("#chat-header-status");
+    if(!statusLabel) return;
+    
+    if(status == UserStatus.Online) {
+        statusLabel.innerHTML = `<div class="w-2 h-2 bg-green-500 rounded-full"></div><span>В сети</span>`
+        return;
+    }
+    if(status == UserStatus.Offline) {
+        statusLabel.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full"></div><span>Не в сети</span>`
+        return;
+    }
+}

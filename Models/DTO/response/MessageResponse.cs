@@ -1,6 +1,6 @@
-﻿namespace TestSignalR.Models.DTO
+﻿namespace TestSignalR.Models.DTO.response
 {
-    public class MessageRequest
+    public class MessageResponse
     {
         public int Id { get; set; }
         public long SendedAt { get; set; }

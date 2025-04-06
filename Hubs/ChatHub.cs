@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Immutable;
+using System.Reflection;
 using System.Security.Claims;
 using System.Xml.Linq;
 using TestSignalR.Models;
-using TestSignalR.Models.DTO;
+using TestSignalR.Models.DTO.response;
 using TestSignalR.Models.Helper;
+using TestSignalR.Services.Enums;
 using TestSignalR.Services.Interfaces;
 
 namespace TestSignalR.Hubs
@@ -22,8 +25,10 @@ namespace TestSignalR.Hubs
         }
         public async Task SendMessage(string receiverId, string message)
         {
-            string? senderId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            SendMessageResult? result = await _messageService.SendMessage(receiverId, senderId, message);
+            string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (senderId == null) return;
+
+            SendMessageResponse? result = await _messageService.SendMessage(receiverId, senderId, message);
 
             if(result == null)
             {
@@ -47,9 +52,8 @@ namespace TestSignalR.Hubs
         }
         public async Task FindContact(string login)
         {
-            string? sender = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (sender == null) return;
-            int senderId = Int32.Parse(sender);
+            string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (senderId == null) return;
 
             FindContactResponse result = new FindContactResponse();
             result.isFind = false;
@@ -58,26 +62,46 @@ namespace TestSignalR.Hubs
 
             if (recipient == null)
             {
-                await Clients.User(sender).ReceiveContact(JsonHelper.Serialize(result));
+                await Clients.User(senderId).ReceiveContact(JsonHelper.Serialize(result));
                 return;
             }
 
-            List<Message> linkedMessages = await _messageService.GetMessagesByUserAsync(recipient.Id, senderId);
-            List<MessageRequest> messagesRequest = new List<MessageRequest>();
+            List<Message> linkedMessages = await _messageService.GetMessagesByUserAsync(recipient.Id, Int32.Parse(senderId));
+            List<MessageResponse> messagesRequest = new List<MessageResponse>();
 
             foreach (var msg in linkedMessages)
             {
-                messagesRequest.Add(Mapper.Map<Message, MessageRequest>(msg));
+                messagesRequest.Add(Mapper.Map<Message, MessageResponse>(msg));
             }
 
             result.isFind = true;
-            result.user = Mapper.Map<User, UserRequest>(recipient);
+            result.user = Mapper.Map<User, UserResponse>(recipient);
             result.linkedMessages = messagesRequest;
 
-            await _userService.ClearNotifyContact(senderId, recipient.Id);
+            await _userService.ClearNotifyContact(Int32.Parse(senderId), recipient.Id);
 
-            await Clients.User(sender).ReceiveContact(JsonHelper.Serialize(result));
+            await Clients.User(senderId).ReceiveContact(JsonHelper.Serialize(result));
             return;
+        }
+        public override async Task OnConnectedAsync()
+        {
+            string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (senderId == null) return;
+            await _userService.SetStatusAsync(Int32.Parse(senderId), UserStatus.Online);
+            List<string> contacts = await _userService.GetUserContactIdsAsync(Int32.Parse(senderId));
+            string login = Context.User.FindFirstValue(ClaimTypes.Name);
+            await Clients.Users(contacts).UserOnline(login);
+            await base.OnConnectedAsync();
+        }
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (senderId == null) return;
+            await _userService.SetStatusAsync(Int32.Parse(senderId), UserStatus.Offline);
+            List<string> contacts = await _userService.GetUserContactIdsAsync(Int32.Parse(senderId));
+            string login = Context.User.FindFirstValue(ClaimTypes.Name);
+            await Clients.Users(contacts).UserOffline(login);
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TestSignalR.Models.DTO
+namespace TestSignalR.Models.DTO.request
 {
     public class LoginRequest
     {

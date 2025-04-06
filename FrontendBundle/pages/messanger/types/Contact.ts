@@ -3,8 +3,8 @@ import { User } from "./User";
 
 
 export interface Contact {
-    HasNewMessage: boolean,
+    hasNewMessage: boolean,
     linkedMessage: Message,
-    recipient: User,
+    user: User,
     
 }
