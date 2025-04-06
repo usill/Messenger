@@ -1,7 +1,7 @@
 
 export enum UserStatus {
-    Online,
-    Offline
+    Offline,
+    Online
 }
 
 export interface User {

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Xml.Linq;
 using TestSignalR.Models;
+using TestSignalR.Models.DTO;
 using TestSignalR.Models.DTO.response;
 using TestSignalR.Models.Helper;
 using TestSignalR.Services.Enums;
@@ -37,11 +38,29 @@ namespace TestSignalR.Hubs
 
             if(result.IsNewSender)
             {
-                await Clients.User(receiverId).AddContact(result.Sender.Username, result.Sender.Login, result.Sender.Avatar, message);
+                var contact = new ContactResponse
+                {
+                    user = Mapper.Map<User, UserResponse>(result.Sender),
+                    linkedMessage = new MessageResponse
+                    {
+                        Text = message,
+                    },
+                    hasNewMessage = true,
+                };
+                await Clients.User(receiverId).AddContact(JsonHelper.Serialize(contact));
             }
             if(result.IsNewReceiver)
             {
-                await Clients.User(senderId).AddContact(result.Sender.Username, result.Receiver.Login, result.Receiver.Avatar, message);
+                var contact = new ContactResponse
+                {
+                    user = Mapper.Map<User, UserResponse>(result.Receiver),
+                    linkedMessage = new MessageResponse
+                    {
+                        Text = message,
+                    },
+                    hasNewMessage = true,
+                };
+                await Clients.User(senderId).AddContact(JsonHelper.Serialize(contact));
             }
 
             await Clients.User(receiverId).ReceiveMessage(result.Sender.Login, message);

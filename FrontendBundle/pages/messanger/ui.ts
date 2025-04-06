@@ -68,13 +68,19 @@ export const drawListMessages = (messages: Message[], recipientId: number | stri
     }
 }
 
-export const drawContact = (username: string, login: string, avatar: string, lastMessage: string, hasNewMessage: boolean) => {
+export const drawContact = (username: string, login: string, avatar: string, lastMessage: string, hasNewMessage: boolean, status: UserStatus) => {
     const contactList: HTMLElement | null = document.querySelector("#contacts-content");
     if(!contactList) return;
+    
+    console.log("Статус:", status);
+    const colorStatus = status == UserStatus.Offline ? "bg-gray-300" : "bg-green-500";
 
     const newContact = `
         <li id="${login}" onclick="findContact('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
-            <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
+            <div class="relative">
+                <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
+                <div id="contact-status" class="absolute -right-1 -bottom-1 w-3 h-3 rounded-full ${colorStatus}"></div>
+            </div>
             <div class="flex flex-col overflow-hidden">
                 <span class="text-sm font-medium leading-4 whitespace-nowrap">${username}</span>
                 <span class="text-sm leading-4 w-max text-gray-500 whitespace-nowrap">${lastMessage}</span>
@@ -122,7 +128,26 @@ export const setStatusInHeader = (status: UserStatus) => {
         return;
     }
     if(status == UserStatus.Offline) {
-        statusLabel.innerHTML = `<div class="w-2 h-2 bg-gray-400 rounded-full"></div><span>Не в сети</span>`
+        statusLabel.innerHTML = `<div class="w-2 h-2 bg-gray-300 rounded-full"></div><span>Не в сети</span>`
+        return;
+    }
+}
+
+export const setStatusInContacts = (status: UserStatus, login: string) => {
+    const contactsBlock: HTMLElement | null = document.querySelector("#contacts-content");
+    if(!contactsBlock) return;
+    const contact: HTMLElement | null = contactsBlock.querySelector("#" + login);
+    if(!contact) return;
+    const statusLabel: HTMLElement = contact.querySelector("#contact-status") as HTMLElement;
+
+    if(status == UserStatus.Online) {
+        statusLabel.classList.remove("bg-gray-300");
+        statusLabel.classList.add("bg-green-500");
+        return;
+    }
+    if(status == UserStatus.Offline) {
+        statusLabel.classList.remove("bg-green-500");
+        statusLabel.classList.add("bg-gray-300");
         return;
     }
 }

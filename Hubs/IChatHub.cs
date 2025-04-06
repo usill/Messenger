@@ -3,7 +3,7 @@
     public interface IChatHub
     {
         Task ReceiveMessage(string login, string message);
-        Task AddContact(string contactName, string login, string avatar, string lastMessage);
+        Task AddContact(string contact);
         Task UpdateContact(string login, string lastMessage);
         Task ReceiveContact(string contact);
         Task UserOnline(string login);

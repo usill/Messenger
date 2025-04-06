@@ -31,7 +31,7 @@ export const initProxy = () => {
                 value.sort((a: Contact, b: Contact) => a.linkedMessage.SendedAt - b.linkedMessage.SendedAt);
 
                 for (var contact of value as Contact[]) {
-                    drawContact(contact.user.Username, contact.user.Login, contact.user.Avatar, contact.linkedMessage.Text, contact.hasNewMessage);
+                    drawContact(contact.user.Username, contact.user.Login, contact.user.Avatar, contact.linkedMessage.Text, contact.hasNewMessage, contact.user.Status);
                 }
             }
             if (prop === MessangerKeys.IsChatOpen) {

@@ -2,7 +2,7 @@ import * as signalR from "@microsoft/signalr";
 import { Contact } from "./types/Contact";
 import { Message } from "./types/Message";
 import { User, UserStatus } from "./types/User";
-import { clearContacts, clearNotification, drawContact, drawMessage, setStatusInHeader } from "./ui";
+import { clearContacts, clearNotification, drawContact, drawMessage, setStatusInContacts, setStatusInHeader } from "./ui";
 import { FindedContact } from "./types/FindedContact";
 import { showError } from "../../modules/UI/input";
 
@@ -52,6 +52,7 @@ const setStatus = (status: UserStatus, login:string) => {
     if(!contact) return;
     contact.user.Status = status;
 
+    setStatusInContacts(status, login)
     if(window.chatProxy.user.Login == login) {
         setStatusInHeader(status);
     }
@@ -86,27 +87,29 @@ const receiveContact = (contact: string) => {
     window.chatProxy.isChatOpen = true;
 
     setStatusInHeader(user.Status);
+    setStatusInContacts(user.Status, user.Login);
     clearNotification(user.Login);
 }
 
-const addContact = (username: string, login: string, avatar: string, lastMessage: string) => {
-    console.log("Добавлен контакт:", login);
+const addContact = (contactJson: string) => {
+    const contact: Contact = JSON.parse(contactJson);
+    console.log("Добавлен контакт:", contact.user.Login);
 
     const newContact: Contact = {
-        hasNewMessage: true,
+        hasNewMessage: contact.hasNewMessage,
         user: {
-            Login: login,
-            Username: username,
-            Avatar: avatar,
+            Login: contact.user.Login,
+            Username: contact.user.Username,
+            Avatar: contact.user.Avatar,
         } as User,
         linkedMessage: {
-            Text: lastMessage,
+            Text: contact.linkedMessage.Text,
             SendedAt: Date.now(),
         } as Message
     };
 
     window.chatProxy.contacts.push(newContact);
-    drawContact(username, login, avatar, lastMessage, true);
+    drawContact(contact.user.Username, contact.user.Login, contact.user.Avatar, contact.linkedMessage.Text, true, contact.user.Status);
 };
 
 const updateContact = (login: string, lastMessage: string) => {
@@ -126,6 +129,6 @@ const updateContact = (login: string, lastMessage: string) => {
     for (const contact of window.chatProxy.contacts)
     {
         console.log("draw");
-        drawContact(contact.user.Username, contact.user.Login, contact.user.Avatar, contact.linkedMessage.Text, contact.hasNewMessage);
+        drawContact(contact.user.Username, contact.user.Login, contact.user.Avatar, contact.linkedMessage.Text, contact.hasNewMessage, contact.user.Status);
     }
 };
