@@ -16,15 +16,17 @@ namespace TestSignalR.Services
             _dbContext = dbContext;
             _userService = userService;
         }
-        public async Task<List<Message>?> GetMessagesByUserAsync(int recipientId, int senderId, int limit = 25, string order = "ASC")
+        public async Task<List<Message>> GetMessagesByUserAsync(int recipientId, int senderId, int index = 0, int limit = 50, string order = "DESC")
         {
+            int offset = index * limit;
             string safeOrder = order.ToUpper() == "DESC" ? "DESC" : "ASC";
             string sql = $@"
                             SELECT * FROM Messages 
                             WHERE RecipientId = {recipientId} AND SenderId = {senderId} 
                             OR SenderId = {recipientId} AND RecipientId = {senderId} 
                             ORDER BY SendedAt {safeOrder} 
-                            LIMIT {limit}";
+                            LIMIT {limit}
+                            OFFSET {offset}";
 
             return await _dbContext.Messages.FromSqlRaw(sql).ToListAsync();
         }

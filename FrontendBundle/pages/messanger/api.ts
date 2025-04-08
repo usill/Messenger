@@ -6,6 +6,12 @@ export const findContact = async (login: string) => {
     });
 }
 
+export const getMessages = async (receiverId: number, index: number) => {
+    window.connection.invoke("GetMessages", receiverId.toString(), index.toString()).catch((error) => {
+        return console.error(error.toString());
+    });
+}
+
 export const sendMessage = () => {
     const textarea: HTMLTextAreaElement | null = document.querySelector("#chat-textarea");
 

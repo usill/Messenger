@@ -8,5 +8,6 @@
         Task ReceiveContact(string contact);
         Task UserOnline(string login);
         Task UserOffline(string login);
+        Task DrawMoreMessages(string messages);
     }
 }

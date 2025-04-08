@@ -95,7 +95,7 @@ namespace TestSignalR.Services
 
             foreach (Contact contact in contacts)
             {
-                List<Message>? msg = await messageService.GetMessagesByUserAsync(userId, contact.User.Id, 1, "DESC");
+                List<Message>? msg = await messageService.GetMessagesByUserAsync(userId, contact.User.Id, limit: 1);
 
                 result.Add(new ContactResponse
                 {

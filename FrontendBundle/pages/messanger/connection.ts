@@ -2,7 +2,7 @@ import * as signalR from "@microsoft/signalr";
 import { Contact } from "./types/Contact";
 import { Message } from "./types/Message";
 import { User, UserStatus } from "./types/User";
-import { clearContacts, clearNotification, drawContact, drawMessage, setStatusInContacts, setStatusInHeader } from "./ui";
+import { clearContacts, clearNotification, drawContact, drawMessage, drawMessages, setStatusInContacts, setStatusInHeader } from "./ui";
 import { FindedContact } from "./types/FindedContact";
 import { showError } from "../../modules/UI/input";
 
@@ -20,8 +20,22 @@ export const initConnection = () => {
     window.connection.on("ReceiveContact", receiveContact);
     window.connection.on("UserOnline", userOnline);
     window.connection.on("UserOffline", userOffline);
+    window.connection.on("DrawMoreMessages", drawMoreMesages);
 
     window.connection.start();
+}
+
+export const drawMoreMesages = (messagesJson: string) => {
+    const messages: Message[] = JSON.parse(messagesJson);
+    window.chatProxy.hasMoreMessages = false;
+    const drawToEnd = true;
+
+    if(messages.length >= 50) {
+        window.chatProxy.hasMoreMessages = true;
+        return;
+    }
+    
+    drawMessages(messages, window.chatProxy.user.Id ?? 0, drawToEnd);
 }
 
 export const checkNotify = (login: string, state: NotifyState) => {
@@ -85,6 +99,7 @@ const receiveContact = (contact: string) => {
     window.chatProxy.user = user;
     window.chatProxy.messages = messages;
     window.chatProxy.isChatOpen = true;
+    window.chatProxy.messagesPage = 0;
 
     setStatusInHeader(user.Status);
     setStatusInContacts(user.Status, user.Login);

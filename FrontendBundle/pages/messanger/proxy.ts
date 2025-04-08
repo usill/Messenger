@@ -12,8 +12,7 @@ export const initProxy = () => {
     const chatHandler = {
         set(obj: Messanger, prop: string, value: User | Contact[] | Message[] | boolean) {
             obj[prop] = value;
-            console.log(value);
-
+            
             if (prop === MessangerKeys.User) {
                 value = value as User;
                 setChatHeader(value);
@@ -21,6 +20,11 @@ export const initProxy = () => {
             }
             if (prop === MessangerKeys.Messages) {
                 value = value as Message[];
+
+                if(value.length >= 50) {
+                    obj.hasMoreMessages = true;
+                }
+
                 clearChat();
                 drawListMessages(value, obj.user.Id ?? 0);
             }

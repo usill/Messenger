@@ -102,6 +102,26 @@ namespace TestSignalR.Hubs
             await Clients.User(senderId).ReceiveContact(JsonHelper.Serialize(result));
             return;
         }
+        public async Task GetMessages(string reseiverId, string pageIndex)
+        {
+
+            string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (senderId == null) return;
+
+            int recipientId, index;
+
+            bool isRecipientNumeric = Int32.TryParse(reseiverId, out recipientId);
+            bool isPageIndexNumeric = Int32.TryParse(pageIndex, out index);
+
+            if (!isRecipientNumeric || !isPageIndexNumeric)
+            {
+                return;
+            }
+
+            List<Message> messages = await _messageService.GetMessagesByUserAsync(recipientId, Int32.Parse(senderId), index: index);
+
+            await Clients.User(senderId).DrawMoreMessages(JsonHelper.Serialize(messages));
+        }
         public override async Task OnConnectedAsync()
         {
             string? senderId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
