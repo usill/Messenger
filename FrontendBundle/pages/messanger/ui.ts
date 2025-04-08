@@ -44,8 +44,6 @@ export const openChat = () => {
     scrollChatToEnd();
 }
 
-
-
 export const drawMessage = (message: string, isOwn = false, toEnd: boolean = false) => {
     const li: HTMLElement = document.createElement("li");
     const chat: HTMLElement | null = document.querySelector("#chat-content");
@@ -72,7 +70,7 @@ const drawObserver = () => {
     if (!chat) return;
 
     chat.innerHTML += `
-        <li id="chat-observer" class="min-h-8 w-full flex justify-center items-center relative top-[180px]">
+        <li id="chat-observer" class="min-h-8 w-full flex justify-center items-center">
             <div id="chat-preloader" class="flex">
                 <div role="status">
                     <svg aria-hidden="true" id="spiner" style="height: 1.5rem; width: 1.5rem" class="animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -114,11 +112,16 @@ const drawMoreMessages = (observer: IntersectionObserver, observerElem: Element,
     const receiverId = window.chatProxy.user.Id;
     const page = ++window.chatProxy.messagesPage;
 
+    const scrollBottom = chat.scrollHeight - chat.scrollTop;
+
     if (!receiverId) return;
 
     getMessages(receiverId, page).then(() => {
         observer.observe(observerElem);
         chat.prepend(observerElem);
+        chat.scrollTo({
+            top: chat.scrollHeight - scrollBottom
+        })
     });
 }
 
@@ -128,7 +131,12 @@ export const drawListMessages = (messages: Message[], recipientId: number | stri
 }
 
 export const drawMessages = (messages: Message[], recipientId: number | string, toEnd: boolean = false) => {
-    messages.sort((a: Message, b: Message) => a.SendedAt - b.SendedAt);
+    if(!toEnd) {
+        messages.sort((a: Message, b: Message) => a.SendedAt - b.SendedAt);
+    } else {
+        messages.sort((a: Message, b: Message) => b.SendedAt - a.SendedAt);
+    }
+
     for (const msg of messages) {
         drawMessage(msg.Text, msg.RecipientId == recipientId, toEnd);
     }

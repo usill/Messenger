@@ -32,9 +32,8 @@ export const drawMoreMesages = (messagesJson: string) => {
 
     if(messages.length >= 50) {
         window.chatProxy.hasMoreMessages = true;
-        return;
     }
-    
+
     drawMessages(messages, window.chatProxy.user.Id ?? 0, drawToEnd);
 }
 
