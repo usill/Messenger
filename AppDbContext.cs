@@ -22,9 +22,15 @@ namespace TestSignalR
                 .HasOne(m => m.Recipient)
                 .WithMany(u => u.MessagesReceive)
                 .HasForeignKey(m => m.RecipientId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Token)
+                .WithOne(t => t.User)
+                .HasForeignKey<RefreshToken>(t => t.UserId);
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Contact> Contacts { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TestSignalR.Models;
 using TestSignalR.Models.DTO.request;
+using TestSignalR.Models.Enums;
 using TestSignalR.Models.Helper;
 using TestSignalR.Services.Interfaces;
 
@@ -77,15 +78,15 @@ namespace TestSignalR.API
 
             await _context.SaveChangesAsync();
 
-            string token = _authService.GenerateJwtToken(request.login, newUser.Id.ToString());
-            CookieOptions cookieOptions = _authService.GetCookie(token);
-            Response.Cookies.Append("authToken", token, cookieOptions);
+            string refreshToken = _authService.GenerateRefreshToken();
+            setCookies(request.login, newUser.Id.ToString(), refreshToken);
+            await _authService.SetRefreshTokenAsync(refreshToken, newUser.Id);
 
             return Ok();
         }
         [HttpPost("login")]
         [ValidateAntiForgeryToken]
-        public IActionResult Login([FromForm] LoginRequest request)
+        public async Task<IActionResult> Login([FromForm] LoginRequest request)
         {
             if(!ModelState.IsValid)
             {
@@ -102,11 +103,21 @@ namespace TestSignalR.API
                 return ValidationProblem();
             }
 
-            string token = _authService.GenerateJwtToken(user.Login, user.Id.ToString());
-            CookieOptions cookieOptions = _authService.GetCookie(token);
-            Response.Cookies.Append("authToken", token, cookieOptions);
+            string refreshToken = _authService.GenerateRefreshToken();
+            setCookies(user.Login, user.Id.ToString(), refreshToken);
+            await _authService.SetRefreshTokenAsync(refreshToken, user.Id);
 
             return Ok();
+        }
+        public void setCookies(string login, string id, string refreshToken)
+        {
+            CookieOptions accessCookieOptions = _authService.GetCookieOptions(TokenType.Access);
+            CookieOptions refreshCookieOptions = _authService.GetCookieOptions(TokenType.Refresh);
+
+            string accessToken = _authService.GenerateJwtToken(login, id);
+
+            Response.Cookies.Append("authToken", accessToken, accessCookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, refreshCookieOptions);
         }
         [HttpGet("logout")]
         [Authorize]

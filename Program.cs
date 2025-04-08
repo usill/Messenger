@@ -6,6 +6,7 @@ using TestSignalR;
 using TestSignalR.Hubs;
 using TestSignalR.Middleware;
 using TestSignalR.Models;
+using TestSignalR.Models.Enums;
 using TestSignalR.Models.Helper;
 using TestSignalR.Models.Settings;
 using TestSignalR.Services;
@@ -26,6 +27,18 @@ builder.Configuration.AddUserSecrets<Program>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddConnections();
 builder.Services.AddSignalR();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("SqliteDb"));
+});
+
+var authService = builder.Services.BuildServiceProvider().GetRequiredService<IAuthService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
 
@@ -37,7 +50,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Key))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Key)),
+        ClockSkew = TimeSpan.Zero
     };
 
     options.Events = new JwtBearerEvents
@@ -47,14 +61,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
             context.Token = context.Request.Cookies["authToken"];
             return Task.CompletedTask;
         },
-        OnChallenge = context =>
+        OnChallenge = async context =>
         {
             if (!context.HttpContext.User.Identity.IsAuthenticated)
             {
-                context.HandleResponse();
-                context.Response.Redirect("/login");
+                string token = context.Request.Cookies["refreshToken"];
+                User? user = await authService.ValidateRefreshTokenAsync(token);
+
+                if (user == null)
+                {
+                    context.HandleResponse();
+                    context.Response.Redirect("/login");
+                    return;
+                }
+
+                var newAccessToken = authService.GenerateJwtToken(user.Login, user.Id.ToString());
+                CookieOptions accessCookieOptions = authService.GetCookieOptions(TokenType.Access);
+                context.Response.Cookies.Append("authToken", newAccessToken, accessCookieOptions);
             }
-            return Task.CompletedTask;
+
+            return;
         }
     };
 });
@@ -62,11 +88,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlite(builder.Configuration.GetConnectionString("SqliteDb"));
-});
 
 builder.Services.AddAntiforgery(options =>
 {
@@ -85,10 +106,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IMessageService, MessageService>();
 
 var app = builder.Build();
 

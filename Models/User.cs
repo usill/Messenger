@@ -18,5 +18,6 @@ namespace TestSignalR.Models
         public UserStatus Status { get; set; }
         public List<Message> MessagesSended { get; set; } = new List<Message> { };
         public List<Message> MessagesReceive { get; set; } = new List<Message> { };
+        public RefreshToken? Token { get; set; }
     }
 }
