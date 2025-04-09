@@ -60,6 +60,7 @@ namespace TestSignalR.Services
             string hash = GetPasswordHash(token);
 
             RefreshToken? storedToken = await _dbContext.RefreshTokens.Include(t => t.User).Where(t => t.HashValue == hash && t.ExpiresAt > DateTime.UtcNow).FirstOrDefaultAsync();
+            List<RefreshToken> tokens = await _dbContext.RefreshTokens.ToListAsync();
 
             if(storedToken == null)
             {
@@ -77,14 +78,14 @@ namespace TestSignalR.Services
             if(storedToken != null)
             {
                 storedToken.HashValue = hash;
-                storedToken.ExpiresAt = DateTime.UtcNow;
+                storedToken.ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenLifetimeDays);
             } 
             else
             {
                 RefreshToken newToken = new RefreshToken
                 {
                     HashValue = hash,
-                    ExpiresAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenLifetimeDays),
                     UserId = userId
                 };
                 _dbContext.RefreshTokens.Add(newToken);

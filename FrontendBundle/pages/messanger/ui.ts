@@ -152,7 +152,7 @@ export const drawContact = (username: string, login: string, avatar: string, las
     const newContact = `
         <li id="${login}" onclick="findContact('${login}')" class="flex items-center gap-4 px-2 py-3 relative cursor-pointer hover:bg-gray-100">
             <div class="relative">
-                <img src="/img/avatar/${avatar}" alt="" class="w-10 h-10">
+                <img src="/img/avatar/${avatar}" alt="" class="min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px]">
                 <div id="contact-status" class="absolute -right-1 -bottom-1 w-3 h-3 rounded-full ${colorStatus}"></div>
             </div>
             <div class="flex flex-col overflow-hidden">

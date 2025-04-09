@@ -63,21 +63,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         },
         OnChallenge = async context =>
         {
+
             if (!context.HttpContext.User.Identity.IsAuthenticated)
             {
-                string token = context.Request.Cookies["refreshToken"];
-                User? user = await authService.ValidateRefreshTokenAsync(token);
+                string? token = context.Request.Cookies["refreshToken"];
 
-                if (user == null)
+                context.HandleResponse();
+
+                if (token == null)
                 {
-                    context.HandleResponse();
                     context.Response.Redirect("/login");
                     return;
                 }
 
-                var newAccessToken = authService.GenerateJwtToken(user.Login, user.Id.ToString());
-                CookieOptions accessCookieOptions = authService.GetCookieOptions(TokenType.Access);
-                context.Response.Cookies.Append("authToken", newAccessToken, accessCookieOptions);
+                User? user = await authService.ValidateRefreshTokenAsync(token);
+
+                if (user != null)
+                {
+                    var newAccessToken = authService.GenerateJwtToken(user.Login, user.Id.ToString());
+                    CookieOptions accessCookieOptions = authService.GetCookieOptions(TokenType.Access);
+                    context.HttpContext.Response.Cookies.Append("authToken", newAccessToken, accessCookieOptions);
+                    context.Response.Redirect(context.Request.Path);
+
+                    return;
+                }
+
+                context.Response.Redirect("/login");
             }
 
             return;
