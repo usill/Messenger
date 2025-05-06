@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TestSignalR.Actors;
 using TestSignalR.Models;
 using TestSignalR.Models.DTO.request;
 using TestSignalR.Models.Enums;
@@ -16,10 +17,16 @@ namespace TestSignalR.API
     {
         private readonly IAuthService _authService;
         private readonly AppDbContext _context;
-        public AuthApi(IAuthService service, AppDbContext dbContext)
+        private readonly IAvatar _avatar;
+        private readonly IHasher _hasher;
+        private readonly ICookie _cookie;
+        public AuthApi(IAuthService service, AppDbContext dbContext, IAvatar avatar, IHasher hasher, ICookie cookie)
         {
             _authService = service;
             _context = dbContext;
+            _avatar = avatar;
+            _hasher = hasher;
+            _cookie = cookie;
         }
         [HttpPost("registration")]
         [ValidateAntiForgeryToken]
@@ -44,9 +51,8 @@ namespace TestSignalR.API
                 return ValidationProblem();
             }
 
-            string passwordHash = _authService.GetPasswordHash(request.password);
-
-            string avatar = _authService.GetRandomAvatar();
+            string passwordHash = _hasher.GetHash(request.password);
+            string avatar = _avatar.GetRandom();
 
             User newUser = new User
             {
@@ -93,7 +99,7 @@ namespace TestSignalR.API
                 return ValidationProblem();
             }
 
-            string passwordHash = _authService.GetPasswordHash(request.password);
+            string passwordHash = _hasher.GetHash(request.password);
             User? user = _context.Users.Where(u => u.Login == request.login && u.PasswordHash == passwordHash).FirstOrDefault();
 
             if(user == null)
@@ -111,10 +117,10 @@ namespace TestSignalR.API
         }
         public void setCookies(string login, string id, string refreshToken)
         {
-            CookieOptions accessCookieOptions = _authService.GetCookieOptions(TokenType.Access);
-            CookieOptions refreshCookieOptions = _authService.GetCookieOptions(TokenType.Refresh);
+            CookieOptions accessCookieOptions = _cookie.GetOptions(TokenType.Access);
+            CookieOptions refreshCookieOptions = _cookie.GetOptions(TokenType.Refresh);
 
-            string accessToken = _authService.GenerateJwtToken(login, id);
+            string accessToken = _authService.GenerateAccessToken(login, id);
 
             Response.Cookies.Append("authToken", accessToken, accessCookieOptions);
             Response.Cookies.Append("refreshToken", refreshToken, refreshCookieOptions);

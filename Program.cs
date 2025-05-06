@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TestSignalR;
+using TestSignalR.Actors;
 using TestSignalR.Hubs;
 using TestSignalR.Middleware;
 using TestSignalR.Models;
@@ -28,9 +29,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddConnections();
 builder.Services.AddSignalR();
 
+// services DI
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+
+// actors DI
+builder.Services.AddScoped<IHasher, Hasher>();
+builder.Services.AddScoped<IAvatar, Avatar>();
+builder.Services.AddScoped<ICookie, Cookie>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -80,7 +87,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
                 if (user != null)
                 {
-                    var newAccessToken = authService.GenerateJwtToken(user.Login, user.Id.ToString());
+                    var newAccessToken = authService.GenerateAccessToken(user.Login, user.Id.ToString());
                     CookieOptions accessCookieOptions = authService.GetCookieOptions(TokenType.Access);
                     context.HttpContext.Response.Cookies.Append("authToken", newAccessToken, accessCookieOptions);
                     context.Response.Redirect(context.Request.Path);

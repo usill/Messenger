@@ -8,6 +8,8 @@ using System.Security.Cryptography;
 using TestSignalR.Models;
 using Microsoft.EntityFrameworkCore;
 using TestSignalR.Models.Enums;
+using TestSignalR.Actors;
+using Microsoft.Extensions.Configuration;
 
 namespace TestSignalR.Services
 {
@@ -16,15 +18,20 @@ namespace TestSignalR.Services
         private readonly IConfiguration _configuration;
         private readonly int _accessTokenLifetimeMinutes;
         private readonly int _refreshTokenLifetimeDays;
+        private readonly IHasher _hasher;
         private readonly AppDbContext _dbContext;
-        public AuthService(IConfiguration configuration, AppDbContext dbContext)
+        private readonly ICookie _cookie;
+
+        public AuthService(IConfiguration configuration, IHasher hasher, AppDbContext dbContext, ICookie cookie)
         {
-            _dbContext = dbContext;
             _configuration = configuration;
+            _hasher = hasher;
+            _dbContext = dbContext;
+            _cookie = cookie;
             _accessTokenLifetimeMinutes = configuration.GetSection("Auth:AccessTokenLifetimeMinutes").Get<int>();
             _refreshTokenLifetimeDays = configuration.GetSection("Auth:RefreshTokenLifetimeDays").Get<int>();
         }
-        public string GenerateJwtToken(string login, string id)
+        public string GenerateAccessToken(string login, string id)
         {
             JwtSetting jwtSettings = _configuration.GetSection("Auth:Jwt").Get<JwtSetting>()!;
 
@@ -57,12 +64,12 @@ namespace TestSignalR.Services
             if (token.IsNullOrEmpty())
                 return null;
 
-            string hash = GetPasswordHash(token);
+            string hash = _hasher.GetHash(token);
 
             RefreshToken? storedToken = await _dbContext.RefreshTokens.Include(t => t.User).Where(t => t.HashValue == hash && t.ExpiresAt > DateTime.UtcNow).FirstOrDefaultAsync();
             List<RefreshToken> tokens = await _dbContext.RefreshTokens.ToListAsync();
 
-            if(storedToken == null)
+            if (storedToken == null)
             {
                 return null;
             }
@@ -71,15 +78,15 @@ namespace TestSignalR.Services
         }
         public async Task SetRefreshTokenAsync(string token, int userId)
         {
-            string hash = GetPasswordHash(token);
+            string hash = _hasher.GetHash(token);
 
             RefreshToken? storedToken = await _dbContext.RefreshTokens.Where(t => t.UserId == userId).FirstOrDefaultAsync();
 
-            if(storedToken != null)
+            if (storedToken != null)
             {
                 storedToken.HashValue = hash;
                 storedToken.ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenLifetimeDays);
-            } 
+            }
             else
             {
                 RefreshToken newToken = new RefreshToken
@@ -93,36 +100,6 @@ namespace TestSignalR.Services
 
             await _dbContext.SaveChangesAsync();
         }
-        public CookieOptions GetCookieOptions(TokenType tokenType)
-        {
-            DateTime expires =
-                tokenType == TokenType.Access ?
-                DateTime.UtcNow.AddMinutes(_accessTokenLifetimeMinutes) :
-                DateTime.UtcNow.AddDays(_refreshTokenLifetimeDays);
-
-            return new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = expires
-            };
-        }
-        public string GetPasswordHash(string password)
-        {
-            string salt = _configuration.GetSection("PasswordSalt").Get<string>()!;
-            byte[] passwordHashBytes = HMACSHA256.HashData(
-                Encoding.UTF8.GetBytes(salt),
-                Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(passwordHashBytes);
-        }
-        public string GetRandomAvatar()
-        {
-            string avatarsDir = @_configuration.GetSection("Directories:Avatar").Get<string>()!;
-            string[] files = Directory.GetFiles(avatarsDir);
-            Random rand = new Random();
-            string file = files[rand.Next(files.Length)];
-            return Path.GetFileName(file);
-        }
+        public CookieOptions GetCookieOptions(TokenType tokenType) => _cookie.GetOptions(tokenType);
     }
 }
