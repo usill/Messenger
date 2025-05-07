@@ -18,9 +18,9 @@ namespace TestSignalR.Services
             _dbContext = dbContext;
             _serviceProvicer = serviceProvider;
         }
-        public async Task<User?> FindByNameAsync(string username)
+        public async Task<User?> FindByLoginAsync(string login)
         {
-            return await _dbContext.Users.Where(u => u.Login == username).FirstOrDefaultAsync();
+            return await _dbContext.Users.Where(u => u.Login == login).FirstOrDefaultAsync();
         }
         public async Task<User?> FindByIdAsync(int id)
         {

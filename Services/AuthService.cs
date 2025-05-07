@@ -9,7 +9,6 @@ using TestSignalR.Models;
 using Microsoft.EntityFrameworkCore;
 using TestSignalR.Models.Enums;
 using TestSignalR.Actors;
-using Microsoft.Extensions.Configuration;
 
 namespace TestSignalR.Services
 {

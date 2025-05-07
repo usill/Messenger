@@ -77,7 +77,7 @@ namespace TestSignalR.Hubs
             FindContactResponse result = new FindContactResponse();
             result.isFind = false;
 
-            User? recipient = await _userService.FindByNameAsync(login);
+            User? recipient = await _userService.FindByLoginAsync(login);
 
             if (recipient == null)
             {
